@@ -1,0 +1,2 @@
+Usage: ./asm <input> [output]
+a.out will be used as default output file if nothing is provided as second argument.

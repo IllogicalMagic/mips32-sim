@@ -1,0 +1,141 @@
+#mn	fmt	ops	encoding
+#
+#Arithmetic Instructions
+#
+add	R	rrr	000000,r1,r2,r0,00000,100000
+addi	I	rri	001000,r1,r0,i2
+addiu	I	rri	001001,r1,r0,i2
+addu	R	rrr	000000,r1,r2,r0,00000,100001
+clo	R	rr	011100,r1,r0,r0,00000,100001
+clz	R	rr	011100,r1,r0,r0,00000,100000
+div	R	rr	000000,r0,r1,0000000000,011010
+divu	R	rr	000000,r0,r1,0000000000,011011
+madd	R	rr	011100,r0,r1,00000,00000,000000
+maddu	R	rr	011100,r0,r1,00000,00000,000001
+msub	R	rr	011100,r0,r1,00000,00000,000100
+msubu	R	rr	011100,r0,r1,00000,00000,000101
+mul	R	rrr	011100,r1,r2,r0,00000,000010
+mult	R	rr	000000,r0,r1,0000000000,011000
+multu	R	rr	000000,r0,r1,0000000000,011001
+seb	R	rr	011111,00000,r1,r0,10000,100000
+seh	R	rr	011111,00000,r1,r0,11000,100000
+slt	R	rrr	000000,r1,r2,r0,00000,101010
+slti	I	rri	001010,r1,r0,i2
+sltiu	I	rri	001011,r1,r0,i2
+sltu	R	rrr	000000,r1,r2,r0,00000,101011
+sub	R	rrr	000000,r1,r2,r0,00000,100010
+subu	R	rrr	000000,r1,r2,r0,00000,100011
+#
+#Branch and Jump Instructions
+#
+b	I	i	000100,00000,00000,d0
+bal	I	ri	000001,00000,10001,d1
+beq	I	rri	000100,r0,r1,d2
+bgez	I	ri	000001,r0,00001,d1
+bgezal	I	ri	000001,r0,10001,d1
+bgtz	I	ri	000111,r0,00000,d1
+blez	I	ri	000110,r0,00000,d1
+bltz	I	ri	000001,r0,00000,d1
+bltzal	I	ri	000001,r0,10000,d1
+bne	I	rri	000101,r0,r1,d2
+j	J	t	000010,t0
+jal	J	t	000011,t0
+# jalr	R	rr	000000,r1,00000,r0,00000,001001
+# jalr.hb	R	rr	000000,r1,00000,r0,10000,001001
+jr	R	r	000000,r0,0000000000,00000,001000
+jr.hb	R	r	000000,r0,0000000000,00000,001000
+#
+#Instruction Control Instructions
+#
+ehb	R		000000,00000,00000,00000,00011,000000
+nop	R		000000,00000,00000,00000,00000,000000
+ssnop	R		000000,00000,00000,00000,00001,000000
+#
+#Load, Store, and Memory Control Instructions
+#
+lb	I	rm	100000,b1,r0,o1
+lbu	I	rm	100100,b1,r0,o1
+lh	I	rm	100001,b1,r0,o1
+lhu	I	rm	100101,b1,r0,o1
+ll	I	rm	110000,b1,r0,o1
+lw	I	rm	100011,b1,r0,o1
+lwl	I	rm	100010,b1,r0,o1
+lwr	I	rm	100110,b1,r0,o1
+# pref
+sb	I	rm	101000,b1,r0,o1
+sc	I	rm	111000,b1,r0,o1
+# sd
+sh	I	rm	101001,b1,r0,o1
+sw	I	rm	101011,b1,r0,o1
+swl	I	rm	101010,b1,r0,o1
+swr	I	rm	101110,b1,r0,o1
+# sync
+# synci
+#
+#Logical Instructions
+#
+and	R	rrr	000000,r1,r2,r0,00000,100100
+andi	I	rri	001100,r1,r0,i2
+lui	I	ri	001111,00000,r0,i1
+nor	R	rrr	000000,r1,r2,r0,00000,100111
+or	R	rrr	000000,r1,r2,r0,00000,100101
+ori	I	rri	001101,r1,r0,i2
+xor	R	rrr	000000,r1,r2,r0,00000,100110
+xori	I	rri	001110,r1,r0,i2
+#
+#Insert/Extract Instructions
+#
+# ext
+# ins
+# wsbh
+#
+#Move Instructions
+#
+mfhi	R	r	000000,0000000000,r0,00000,010000
+mflo	R	r	000000,0000000000,r0,00000,010010
+# movf
+movn	R	rrr	000000,r1,r2,r0,00000,001011
+# movt
+movz	R	rrr	000000,r1,r2,r0,00000,001010
+mthi	R	r	000000,r0,000000000000000,010001
+mtlo	R	r	000000,r0,000000000000000,010011
+rdhwr	R	rr	011111,00000,r0,r1,00000,111011
+#
+#Shift Instructions
+#
+rotr	R	rrs	000000,0000,1,r1,r0,s2,000010
+rotrv	R	rrr	000000,r2,r1,r0,0000,1,000110
+sll	R	rrs	000000,00000,r1,r0,s2,000000
+sllv	R	rrr	000000,r2,r1,r0,00000,000100
+sra	R	rrs	000000,00000,r1,r0,s2,000011
+srav	R	rrr	000000,r2,r1,r0,00000,000111
+srl	R	rrs	000000,00000,r1,r0,s2,000010
+srlv	R	rrr	000000,r2,r1,r0,00000,000110
+#
+#Trap Instructions
+#
+# break
+# syscall
+# teq
+# teqi
+# tge
+# tgei
+# tgeiu
+# tgeu
+# tlt
+# tlti
+# tltiu
+# tltu
+# tne
+# tnei
+#
+#Obsolete CPU Branch Instructions
+#
+# beql
+# bgezall
+# bgezl
+# bgtzl
+# blezl
+# bltzall
+# bltzl
+# bnel

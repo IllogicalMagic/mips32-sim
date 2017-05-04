@@ -57,6 +57,19 @@ mn_dict_desc = {'fmt' :0,
                 'ops' :1,
                 'encd':2}
 
+register_unique = {'zero' :0,
+                   'at'   :1,
+                   'gp'   :28,
+                   'sp'   :29,
+                   'fp'   :30,
+                   'ra'   :31}
+
+register_other =  {'v'    :(2,2),
+                   'a'    :(4,4),
+                   't'    :(8,10),
+                   's'    :(16,8),
+                   'k'    :(26,2)}
+
 def fill_dict(line):
     params = line.rstrip('\n').split('\t')
     mn = params[0]
@@ -64,6 +77,7 @@ def fill_dict(line):
     mn_dict[mn] = mn_props
 
 def parse_reg(op):
+    # try simple case like $0
     reg = re.match('\$(\d{1,2})',op)
     if reg:
         reg_num = int(reg.group(1))
@@ -72,7 +86,31 @@ def parse_reg(op):
             return None
         else:
             return (reg_num,)
+    # try to find in synonym tables
     else:
+        reg = re.match('\$(.*)',op)
+        if reg:
+            reg_name = reg.group(1)
+            reg_num = register_unique.get(reg_name)
+            if reg_num != None:
+                return (reg_num,)
+            else:
+                reg = re.match('[vatsk]\d$',reg_name)
+                if reg:
+                    reg_type = reg_name[0]
+                    reg_num = int(reg_name[1])
+                    (begin,count) = register_other[reg_type]
+                    if reg_num >= count:
+                        print 'Wrong register number'
+                        return None
+
+                    if reg_type == 't' and reg_num > 7:
+                        # skip callee-saved registers for temporaries
+                        reg_num += 8
+
+                    reg_num += begin
+                    return (reg_num,)
+
         print 'Bad register operand'
         return None
 
@@ -329,7 +367,7 @@ def encode(ops, encd):
 def encode_insn(mn, operands):
     encd_index = mn_dict_desc['encd']
     encd = encode(operands,mn_dict[mn][encd_index])
-    print "Encoded: ", (bin(encd), encd)
+    print "Encoded: ", (bin(encd), hex(encd))
     return encd
 
 for line in fileinput.input('tables.txt'):
@@ -388,7 +426,7 @@ def fix_insn(insn_num, mn, op, op_type):
     word |= val
     encd_words[insn_num] = word
 
-    print 'Fixed: ', (bin(word), word)
+    print 'Fixed: ', (bin(word), hex(word))
 
 for insn_num, mn, op, op_type in need_fix_insn:
     fix_insn(insn_num, mn, op, op_type)

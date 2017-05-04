@@ -34,6 +34,10 @@ class Insn:
 args = sys.argv
 
 src = args[1]
+if len(args) == 3:
+    dst = args[2]
+else:
+    dst = 'a.out'
 
 mn_dict = {}
 insn_dict = {}
@@ -389,7 +393,7 @@ def fix_insn(insn_num, mn, op, op_type):
 for insn_num, mn, op, op_type in need_fix_insn:
     fix_insn(insn_num, mn, op, op_type)
 
-out = open('a.out','wb')
+out = open(dst,'wb')
 for word in encd_words:
     out.write(pack('!I',word))
 out.close()

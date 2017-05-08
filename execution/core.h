@@ -38,6 +38,11 @@ class Core {
     
   template<SR::RegIndex I, int Sel>
   void sysregRead(const Insn &);
+
+  void initSysregs();
+
+public:
+  Core();
 }; // class Core
 
 #include "sysreg_decl.h"

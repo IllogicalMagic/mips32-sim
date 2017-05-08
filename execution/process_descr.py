@@ -15,6 +15,7 @@ out_cxx = 'sysregs.cpp'
 sysregs = []
 regnum = 0
 regsel = 0
+realregnum = 0
 
 def parse_fields(fields):
     fields = fields.split(';')
@@ -34,6 +35,8 @@ def parse_fields(fields):
 def parse_reg(line):
     global regnum
     global regsel
+    global realregnum
+
     if line[0] == '!':
         regnum += 1
         regsel = 0
@@ -47,6 +50,7 @@ def parse_reg(line):
     if line[0] != '+':
         regsel = 0
     regnum += 1
+    realregnum += 1
 
 for line in fileinput.input(sysreg_descr):
     if line != '\n' and line[0] != '#':
@@ -54,6 +58,9 @@ for line in fileinput.input(sysreg_descr):
 fileinput.close()
 
 def fill_header():
+    global realregnum
+    global regnum
+
     h = open(out_h,'w')
     h.write('#ifndef SIM_MIPS32_GENERATED_SYSREG_HEADER__\n')
     h.write('#define SIM_MIPS32_GENERATED_SYSREG_HEADER__\n\n')
@@ -65,6 +72,8 @@ def fill_header():
     for regno, regse, regname, regfields in sysregs:
         h.write('{0}{1} = {2},\n'.format(indent, regname, regno))
 
+    h.write('{0}SysregNum = {1},\n'.format(indent, regnum))
+    h.write('{0}ImplNum = {1},\n'.format(indent, realregnum))
     indent = '  '
     h.write('{0}{1}'.format(indent, '};\n\n'))
 
@@ -98,9 +107,10 @@ def fill_header():
 
 
 def fill_init(s):
+    indent = '  '
+
     for regnum, regsel, regname, regfields in sysregs:
         s.write('template<>\nvoid Core::sysregInit<Core::SR::RegIndex::{0}, {1}>() {{\n'.format(regname, regsel))
-        indent = '  '
         for fname, fprops in regfields:
             if fname == '0' or fname == 'R':
                 continue
@@ -127,6 +137,11 @@ def fill_init(s):
                 s.write('{0}sysregs.{1}.{2} = {3};\n'.format(indent, regname, fname, val))
 
         s.write('}\n\n')
+
+    s.write('void Core::initSysregs() {\n')
+    for _, regsel, regname, _ in sysregs:
+        s.write('{0}sysregInit<SR::RegIndex::{1}, {2}>();\n'.format(indent,regname,regsel))
+    s.write('}\n\n')
 
 def fill_write(s):
     for regnum, regsel, regname, regfields in sysregs:
@@ -164,7 +179,7 @@ def fill_read(s):
         s.write('{0}registerMap[i.rt].uVal = val;\n'.format(indent))
 
         s.write('}\n\n')
-    
+
 def fill_source():
     s = open(out_cxx,'w')
     

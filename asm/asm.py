@@ -33,6 +33,7 @@ class Insn:
 
 args = sys.argv
 
+tables = '../common/tables.txt'
 src = args[1]
 if len(args) == 3:
     dst = args[2]
@@ -245,12 +246,21 @@ def parse_shift(op):
         return None
     return (res,)
 
+def parse_sel(op):
+    res = parse_expr(op,3,False)
+    if res == None:
+        print 'Wrong sel operand'
+        return None
+    return (res,)
+
+
 op_disp = {'r':parse_reg,
            'i':parse_imm,
            'd':parse_imm,
            't':parse_target,
            'm':parse_mem,
-           's':parse_shift}
+           's':parse_shift,
+           'c':parse_sel}
 
 def parse_operands(optypes, op_list):
     if len(optypes) != len(op_list):
@@ -267,11 +277,14 @@ def parse_operands(optypes, op_list):
         return conv_op
 
 def parse_insn(line):
-    matched = re.match('(\w+)\s+(.*)',line)
+    matched = re.match('(\w+)\s*(.*)',line)
     if matched == None:
         return None
 
-    spl = re.split(',', matched.group(2))
+    if matched.group(2):
+        spl = re.split(',', matched.group(2))
+    else:
+        spl = ''
     mn = matched.group(1)
     global cur_mn
     cur_mn = mn
@@ -340,6 +353,9 @@ def encode(ops, encd):
         elif field[0] == 's':
             res = res << 5
             mask = ~(~0 << 5)
+        elif field[0] == 'c':
+            res = res << 3
+            mask = ~(~0 << 3)
         elif field[0] == 'o':
             res = res << 16
             mask = ~(~0 << 16)
@@ -370,7 +386,7 @@ def encode_insn(mn, operands):
     print "Encoded: ", (bin(encd), hex(encd))
     return encd
 
-for line in fileinput.input('tables.txt'):
+for line in fileinput.input(tables):
     if line[0] != '#':
         fill_dict(line)
 fileinput.close()
@@ -433,6 +449,7 @@ for insn_num, mn, op, op_type in need_fix_insn:
 
 out = open(dst,'wb')
 for word in encd_words:
+    print word
     out.write(pack('!I',word))
 out.close()
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SIM_MIPS32_DECODER_HEADER__
+#define SIM_MIPS32_DECODER_HEADER__
 
 #include <utility>
 #include <array>
@@ -20,7 +21,7 @@ namespace Decoder {
 		    lhu =   0b100101, lbu = 0b100100,
 		    sw =    0b101011, sh = 0b101001, sb = 0b101000,
 		    /*b,*/ beq = 0b000100, bne = 0b000101,
-		    j =     0b000010, jal = 0b000011	//jump operations    	
+		    j =     0b000010, jal = 0b000011	//jump operations
 		};
 		enum spec_command_name {	//arithmetical register operations, opcode = 0
 		    add =   0b100000, addu = 0b100000,
@@ -28,7 +29,7 @@ namespace Decoder {
 		    mult =  0b011000, multu = 0b011001,
 		    div =   0b011010, divu = 0b011011,
 		    b_and =   0b100100,
-		    b_or =    0b100101, 
+		    b_or =    0b100101,
 		    b_xor =   0b100110,
 		    sll =   0,
 		    sra = 0b000011, srl = 0b000010,
@@ -38,7 +39,7 @@ namespace Decoder {
 			tlbp = 	0b001000, tlbr = 0b00001,
 			tlbwi = 0b000010, tlbwr = 0b000110
 		};	//!!!conflicts with RDPGPR, MTC0, MFC0, ERET, EI, DI, DERET
-		
+
 		enum cmd_type{
 		    CMD, SPEC_CMD, COP_CMD
 		};
@@ -47,25 +48,27 @@ namespace Decoder {
     using std::pair;
     using bit_range = pair<int, int>;    //range [a, b)
     //!!!used in get_bits
-    
+
     const bit_range op_range = {26, WORD_LEN};
     const bit_range func_range = {0, 6};
     const bit_range shift_range = {6, 11};
     const bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
     const bit_range address_range = {0, 26};
-    
+
     const std::array<Commands::spec_command_name, 3> shift_cmds = {Commands::sll, Commands::sra, Commands::srl};
-  
-  	struct Instruction {    
+
+  	struct Instruction {
 		int op;
-		
+
 		Commands::cmd_type type;
 		regn_type rt;
 		regn_type rs;
 		regn_type rd;
 		imm_type imm;
 	};
-  
+
     Instruction decode_word(word_type word);
     unsigned get_bits(bit_range range, word_type from);
 };
+
+#endif  //SIM_MIPS32_DECODER_HEADER__

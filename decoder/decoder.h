@@ -3,11 +3,8 @@
 
 #include <utility>
 #include <array>
-
-typedef int regn_type;
-typedef int imm_type;
-typedef unsigned word_type;
-const int WORD_LEN = 32;
+#include "../common/types.h"
+#include "../common/insn.h"
 
 namespace Decoder {
 	namespace Commands {
@@ -45,30 +42,25 @@ namespace Decoder {
 		};
 	}
 
+    constexpr int WORD_LEN = 32;
+
     using std::pair;
     using bit_range = pair<int, int>;    //range [a, b)
     //!!!used in get_bits
 
-    const bit_range op_range = {26, WORD_LEN};
-    const bit_range func_range = {0, 6};
-    const bit_range shift_range = {6, 11};
-    const bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
-    const bit_range address_range = {0, 26};
+    constexpr bit_range op_range = {26, WORD_LEN};
+    constexpr bit_range address_range = {0, 26};
+    constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
+    constexpr bit_range shift_range = {6, 11};
+    constexpr bit_range func_range = {0, 6};
 
-    const std::array<Commands::spec_command_name, 3> shift_cmds = {Commands::sll, Commands::sra, Commands::srl};
+    constexpr std::array<Commands::spec_command_name, 3> shift_cmds = {Commands::sll, Commands::sra, Commands::srl};
+    constexpr std::array<Commands::command_name, 7> signed_ops = {
+        Commands::addi, Commands::b_andi, Commands::b_ori, Commands::b_xori,
+        Commands::lw, Commands::lh, Commands::lb };
 
-  	struct Instruction {
-		int op;
-
-		Commands::cmd_type type;
-		regn_type rt;
-		regn_type rs;
-		regn_type rd;
-		imm_type imm;
-	};
-
-    Instruction decode_word(word_type word);
-    unsigned get_bits(bit_range range, word_type from);
+  	Instruction decode_word(word_type word);
+    uword_t get_bits(bit_range range, word_type from);
 };
 
 #endif  //SIM_MIPS32_DECODER_HEADER__

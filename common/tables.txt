@@ -41,9 +41,7 @@ bne	I	rri	000101,r0,r1,d2
 j	J	t	000010,t0
 jal	J	t	000011,t0
 # jalr	R	rr	000000,r1,00000,r0,00000,001001
-# jalr.hb	R	rr	000000,r1,00000,r0,10000,001001
 jr	R	r	000000,r0,0000000000,00000,001000
-jr.hb	R	r	000000,r0,0000000000,00000,001000
 #
 #Instruction Control Instructions
 #
@@ -61,16 +59,12 @@ ll	I	rm	110000,b1,r0,o1
 lw	I	rm	100011,b1,r0,o1
 lwl	I	rm	100010,b1,r0,o1
 lwr	I	rm	100110,b1,r0,o1
-# pref
 sb	I	rm	101000,b1,r0,o1
 sc	I	rm	111000,b1,r0,o1
-# sd
 sh	I	rm	101001,b1,r0,o1
 sw	I	rm	101011,b1,r0,o1
 swl	I	rm	101010,b1,r0,o1
 swr	I	rm	101110,b1,r0,o1
-# sync
-# synci
 #
 #Logical Instructions
 #
@@ -83,19 +77,11 @@ ori	I	rri	001101,r1,r0,i2
 xor	R	rrr	000000,r1,r2,r0,00000,100110
 xori	I	rri	001110,r1,r0,i2
 #
-#Insert/Extract Instructions
-#
-# ext
-# ins
-# wsbh
-#
 #Move Instructions
 #
 mfhi	R	r	000000,0000000000,r0,00000,010000
 mflo	R	r	000000,0000000000,r0,00000,010010
-# movf
 movn	R	rrr	000000,r1,r2,r0,00000,001011
-# movt
 movz	R	rrr	000000,r1,r2,r0,00000,001010
 mthi	R	r	000000,r0,000000000000000,010001
 mtlo	R	r	000000,r0,000000000000000,010011
@@ -112,30 +98,10 @@ srav	R	rrr	000000,r2,r1,r0,00000,000111
 srl	R	rrs	000000,00000,r1,r0,s2,000010
 srlv	R	rrr	000000,r2,r1,r0,00000,000110
 #
-#Trap Instructions
+#Cop0 Instuctions
 #
-# break
-# syscall
-# teq
-# teqi
-# tge
-# tgei
-# tgeiu
-# tgeu
-# tlt
-# tlti
-# tltiu
-# tltu
-# tne
-# tnei
-#
-#Obsolete CPU Branch Instructions
-#
-# beql
-# bgezall
-# bgezl
-# bgtzl
-# blezl
-# bltzall
-# bltzl
-# bnel
+mfc0	R	rrc	010000,00000,r0,r1,00000000,c2
+mtc0	R	rrc	010000,00100,r0,r1,00000000,c2
+tlbr	R		010000,1,0000000000000000000,000001
+tlbwi	R		010000,1,0000000000000000000,000010
+tlbwr	R		010000,1,0000000000000000000,000110

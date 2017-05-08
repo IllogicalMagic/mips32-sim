@@ -1,0 +1,41 @@
+# ! - register is unimplemented
+# + - reg with same regno as previous but with different sel
+# R - read only
+# RW - read/write
+# 0 - always zero
+# U - undefined
+
+#SysReg         Fields in format of Name[End:Start](AccessType,InitVal)
+Index           P[31:31](R,U);0[30:4](0,0);Index[3:0](RW,U)
+Random          0[31:4](0,0);Random[3:0](R,TLBEntries-1)
+EntryLo0        R[31:30](R,0);0[29:26](R,0);PFN[25:6](RW,U);C[5:3](RW,U);D[2:2](RW,U);V[1:1](RW,U);G[0:0](RW,U)
+EntryLo1        R[31:30](R,0);0[29:26](R,0);PFN[25:6](RW,U);C[5:3](RW,U);D[2:2](RW,U);V[1:1](RW,U);G[0:0](RW,U)
+Context         PTEBase[31:23](RW,U);BadVPN2[22:4](R,U);0[3:0](0,0)
+PageMask        0[31:25](0,0);Mask[24:13](RW,U);0[12:0](0,0)
+Wired           0[31:4](0,0);Wired[3:0](RW,0)
+!Reserved
+BadVAddr        BadVAddr[31:0](R,U)
+!Count
+EntryHi         VPN2[31:13](RW,U);0[12:8](0,0);ASID[7:0](RW,U)
+!Compare
+Status          CU[31:28](RW,U);RP[27:27](RW,0);R[26:26](R,0);RE[25:25](RW,U);0[24:23](R,0);BEV[22:22](RW,1);TS[21:21](RW,0);SR[20:20](RW,1);NMI[19:19](RW,1);0[18:18](R,0);R[17:16](R,0);IM[15:8](RW,U);R[7:5](R,0);UM[4:4](RW,U);R[3:3](R,0);ERL[2:2](RW,1);EXL[1:1](RW,U);IE[0:0](RW,U)
+Cause           BD[31:31](R,U);0[30:30](0,0);CE[29:28](R,U);0[27:24](0,0);IV[23:23](RW,U);WP[22:22](RW,U);0[21:16](0,0);IP[15:10](R,U)|[9:8](RW,U);0[7:7](0,0);ExcCode[6:2](R,U);0[1:0](0,0)
+EPC             EPC[31:0](RW,U)
+!PRId
+Config          M[31:31](R,1);K23[30:28](0,0);KU[27:25](0,0);ISP[24:24](R,0);DSP[23:23](R,0);0[22:22](0,0);SB[21:21](R,0);MDU[20:20](R,0);0[19:19](0,0);MM[18:17](R,0);BM[16:16](R,0);BE[15:15](R,0);AT[14:13](R,0);AR[12:10](R,0);MT[9:7](R,1);0[6:3](0,0);K0[2:0](RW,0b010)
++Config1        M[31:31](R,0);MMUSize[30:25](R,15);IS[24:22](R,0);IL[21:19](R,0);IA[18:16](R,0);DS[15:13](R,0);DL[12:10](R,0);DA[9:7](R,0);0[6:5](0,0);PC[4:4](R,0);WR[3:3](R,1);CA[2:2](R,0);EP[1:1](R,1);FP[0:0](R,0)
+!LLAddr
+!WatchLo
+!WatchHi
+!Reserved
+!Reserved
+!Reserved
+!Debug
+!DEPC
+!Reserved
+!ErrCtl
+!Reserved
+!TagLo,DataLo
+!Reserved
+ErrorEPC        ErrorEPC[31:0](RW,U)
+!DESAVE

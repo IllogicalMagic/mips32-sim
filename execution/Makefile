@@ -17,14 +17,15 @@ CXXFLAGS+=-I$(ROOT_DIR)
 
 CC=$(CXX)
 
-GENERATED=sysregs.h sysregs.cpp sysreg_decl.h sysreg_arr.h
+GENERATED=sysregs.h sysregs.cpp sysreg_decl.h sysreg_arr.h insn_handlers.h insn_handlers.cpp
 
 all: generate test
 
-test: test.o core.o sysregs.o
+test: test.o core.o sysregs.o insn_handlers.o
 
-generate: process_descr.py sysregs.txt
+generate: process_descr.py sysregs.txt process_insn.py handlers.cpp
 	./process_descr.py
+	./process_insn.py
 
 clean:
-	rm -rf *~ *.o $(GENERATED)
+	rm -rf *~ *.o $(GENERATED) test

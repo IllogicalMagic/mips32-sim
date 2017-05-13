@@ -7,6 +7,7 @@
 
 #include "common/types.h"
 #include "common/insn.h"
+#include "common/op_traits.h"
 
 namespace Simulator {
 
@@ -25,6 +26,7 @@ struct GPReg {
 };
 
 class Core {
+  uword_t PC;
   std::array<GPReg, GPRCount> registerMap;
 
   struct SR {
@@ -53,13 +55,25 @@ class Core {
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregWriteHandlers;
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
 
+  template<OpTraits::OpType Op>
+  void processInsn(const Insn &) {assert(0 && "Insn is not implemented");}
+
+  typedef void (Core::*insnHandler)(const Insn &);
+  std::array<insnHandler, static_cast<size_t>(OpTraits::OpType::OpNum)> insnHandlers;
+
   void initSysregs();
+  void initHandlers();
 public:
   Core();
   int testSysregs() {
     Insn I = {};
     (this->*sysregWriteHandlers[I.rd])(I);
     return I.rt;
+  }
+
+  void executeInsn(const Insn &i) {
+    (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
+    PC += 4;
   }
 }; // class Core
 

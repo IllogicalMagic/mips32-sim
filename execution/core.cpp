@@ -5,8 +5,9 @@ namespace Simulator {
 namespace Core {
 
   Core::Core():
-    registerMap({0}) {
+    PC(0), registerMap({0}) {
     initSysregs();
+    initHandlers();
   }
   
 } // namespace Core

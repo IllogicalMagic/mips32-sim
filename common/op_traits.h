@@ -6,7 +6,8 @@ namespace Simulator {
 namespace OpTraits {
 
   enum class OpType {
-    // For now it is empty.
+    #include "opnum.h"
+    OpNum
   };
 
 } // namespace OpTypes

@@ -14,7 +14,8 @@ def process_line(line):
     line = line.rstrip()
     matched = re.match('\w+', line)
     if matched:
-        insn_list.append(matched.group())
+        # since words like "and" are reserved capitalize all mnemonics
+        insn_list.append(matched.group().capitalize())
 
 for line in fileinput.input(tables):
     if line[0] != '#' and line[0] != '\n':

@@ -3,6 +3,7 @@
 
 #include <array>
 #include <tuple>
+#include <cassert>
 
 #include "common/types.h"
 #include "common/insn.h"
@@ -35,14 +36,31 @@ class Core {
     
   template<SR::RegIndex I, int Sel>
   void sysregWrite(const Insn &);
-    
   template<SR::RegIndex I, int Sel>
   void sysregRead(const Insn &);
 
-  void initSysregs();
+  template<SR::RegIndex I>
+  void sysregWriteProxy(const Insn &) {assert(0 && "Unimplemented sysreg");}
+  template<SR::RegIndex I>
+  void sysregReadProxy(const Insn &) {assert(0 && "Unimplemented sysreg");}
 
+  typedef void (Core::*sysregOp)(const Insn &);
+
+  struct {
+#include "sysreg_arr.h"
+  } sysregHandlers;
+
+  std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregWriteHandlers;
+  std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
+
+  void initSysregs();
 public:
   Core();
+  int testSysregs() {
+    Insn I = {};
+    (this->*sysregWriteHandlers[I.rd])(I);
+    return I.rt;
+  }
 }; // class Core
 
 #include "sysreg_decl.h"

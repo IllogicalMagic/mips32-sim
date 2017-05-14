@@ -28,6 +28,7 @@ struct GPReg {
 class Core {
   // State variables
   uword_t PC;
+  bool isInDelaySlot;
   std::array<GPReg, GPRCount> registerMap;
 
   struct SR {
@@ -64,6 +65,39 @@ class Core {
   typedef void (Core::*insnHandler)(const Insn &);
   std::array<insnHandler, static_cast<size_t>(OpTraits::OpType::OpNum)> insnHandlers;
 
+  // Exception handling
+  enum class ExcType {
+    TLBRefill,
+    TLBInvalid,
+    TLBMod,
+
+    AddressError,
+
+    Interrupt,
+
+    MachineCheck,
+    BusError,
+    IntegerOverflow,
+  };
+
+  enum class ExcCode {
+    Int = 0,
+    Mod = 1,
+    TLBL = 2,
+    TLBS = 3,
+    AdEL = 4,
+    AdES = 5,
+    IBE = 6,
+    DBE = 7,
+    Ov = 12,
+    MCheck = 24
+  };
+
+  // For address insn
+  uword_t badVAddr;
+  uword_t ASID;
+  void raiseException(ExcType, ExcCode);
+
   // Init helper functions
   void initSysregs();
   void initHandlers();
@@ -72,6 +106,7 @@ public:
   int testSysregs() {
     Insn I = {};
     (this->*sysregWriteHandlers[I.rd])(I);
+    executeInsn(I);
     return I.rt;
   }
 

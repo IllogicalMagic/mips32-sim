@@ -7,6 +7,8 @@ namespace Simulator {
 
 namespace Types {
 
+  typedef int64_t dword_t;
+  typedef uint64_t udword_t;
   typedef int32_t word_t;
   typedef uint32_t uword_t;
   typedef int16_t hword_t;

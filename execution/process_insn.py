@@ -15,6 +15,7 @@ insns = {}
 handler_stub = ' {\n  assert(0 && "Unimplemented insn");\n}\n'
 handler_decl = 'template<>\nvoid Core::processInsn<OpTraits::OpType::{0}>(const Types::Insn &i)'
 
+# translation table
 repl_table = [ ('GPR', 'registerMap'),
                ('rs' , 'i.rs'),
                ('rt' , 'i.rt'),
@@ -91,6 +92,7 @@ def process_handlers():
 
 process_handlers()
 
+# generate declarations of handlers
 def generate_h():
     out = open(out_h, 'w')
 
@@ -115,6 +117,7 @@ def generate_h():
 
     out.close()
 
+# generate definitions of handlers
 def generate_cxx():
     out = open(out_c, 'w')
 

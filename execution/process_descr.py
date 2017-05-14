@@ -62,6 +62,7 @@ def fill_header():
     global realregnum
     global regnum
 
+    # generate sysreg definitions
     h = open(out_h,'w')
     h.write('#ifndef SIM_MIPS32_GENERATED_SYSREG_HEADER__\n')
     h.write('#define SIM_MIPS32_GENERATED_SYSREG_HEADER__\n\n')
@@ -91,6 +92,7 @@ def fill_header():
     h.write('#endif\n')
     h.close()
 
+    # generate sysreg function declarations
     h = open(out_decl_h, 'w')
     h.write('#ifndef SIM_MIPS32_GENERATED_SYSREG_DECL_HEADER__\n')
     h.write('#define SIM_MIPS32_GENERATED_SYSREG_DECL_HEADER__\n\n')
@@ -110,6 +112,7 @@ def fill_init(s):
     global regnum
     indent = '  '
 
+    # generate init function for every sysreg
     for regno, regsel, regname, regfields in sysregs:
         s.write('template<>\nvoid Core::sysregInit<Core::SR::RegIndex::{0}, {1}>() {{\n'.format(regname, regsel))
         for fname, fprops in regfields:
@@ -141,11 +144,14 @@ def fill_init(s):
 
         s.write('}\n\n')
 
+    # generate main init function
     s.write('void Core::initSysregs() {\n')
+    # init every sysreg
     for _, regsel, regname, _ in sysregs:
         s.write('{0}sysregInit<SR::RegIndex::{1}, {2}>();\n'.format(indent,regname,regsel))
     s.write('\n');
 
+    # init proxy functions for sysreg processing
     for i in range(0,regnum):
         s.write('{0}sysregWriteHandlers[{1}] = &Core::sysregWriteProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i))
     s.write('\n')
@@ -153,6 +159,7 @@ def fill_init(s):
         s.write('{0}sysregReadHandlers[{1}] = &Core::sysregReadProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i))
     s.write('\n')
 
+    # init sysreg handler pointers
     for regno, regsel, regname, _ in sysregs:
         s.write('{0}sysregHandlers.regWrite{1}[{2}] = &Core::sysregWrite<SR::RegIndex::{3}, {2}>;\n'.format(indent, regno, regsel, regname))
     s.write('\n')
@@ -162,6 +169,7 @@ def fill_init(s):
 
     s.write('}\n\n')
 
+# generate sysreg write handlers
 def fill_write(s):
     for regnum, regsel, regname, regfields in sysregs:
         s.write('template<>\nvoid Core::sysregWrite<Core::SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel))
@@ -180,6 +188,7 @@ def fill_write(s):
 
         s.write('}\n\n')
 
+# generate sysreg read handlers
 def fill_read(s):
     for regnum, regsel, regname, regfields in sysregs:
         s.write('template<>\nvoid Core::sysregRead<Core::SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel))
@@ -199,6 +208,7 @@ def fill_read(s):
 
         s.write('}\n\n')
 
+# generate special structure of arrays for sysreg handling
 def fill_arrays(s):
     h = open(out_arr_h, 'w')
     h.write('#ifndef SIM_MIPS32_GENERATED_SYSREG_ARR_HEADER__\n')
@@ -236,6 +246,7 @@ def fill_arrays(s):
     h.write('\n#endif\n')
     h.close()
 
+    # generate proxy functions for sysreg handling
     indent = '  '
     for elem in gen_arr:
         if len(elem) > 0:

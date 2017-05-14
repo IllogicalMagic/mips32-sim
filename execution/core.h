@@ -26,6 +26,7 @@ struct GPReg {
 };
 
 class Core {
+  // State variables
   uword_t PC;
   std::array<GPReg, GPRCount> registerMap;
 
@@ -33,6 +34,7 @@ class Core {
 #include "sysregs.h"
   } sysregs;
 
+  // Sysreg handlers section
   template<SR::RegIndex I, int Sel>
   void sysregInit();
     
@@ -55,12 +57,14 @@ class Core {
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregWriteHandlers;
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
 
+  // Insn handlers section
   template<OpTraits::OpType Op>
   void processInsn(const Insn &) {assert(0 && "Insn is not implemented");}
 
   typedef void (Core::*insnHandler)(const Insn &);
   std::array<insnHandler, static_cast<size_t>(OpTraits::OpType::OpNum)> insnHandlers;
 
+  // Init helper functions
   void initSysregs();
   void initHandlers();
 public:

@@ -6,8 +6,7 @@
 #include <cassert>
 
 #include "common/types.h"
-#include "common/insn.h"
-#include "common/op_traits.h"
+#include "common/dec_types.h"
 
 namespace Simulator {
 
@@ -59,11 +58,11 @@ class Core {
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
 
   // Insn handlers section
-  template<OpTraits::OpType Op>
+  template<OpTypes::OpType Op>
   void processInsn(const Insn &) {assert(0 && "Insn is not implemented");}
 
   typedef void (Core::*insnHandler)(const Insn &);
-  std::array<insnHandler, static_cast<size_t>(OpTraits::OpType::OpNum)> insnHandlers;
+  std::array<insnHandler, static_cast<size_t>(OpTypes::OpType::OpNum)> insnHandlers;
 
   // Exception handling
   enum class ExcType {

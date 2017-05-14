@@ -13,7 +13,7 @@ out_h = 'insn_handlers.h'
 
 insns = {}
 handler_stub = ' {\n  assert(0 && "Unimplemented insn");\n}\n'
-handler_decl = 'template<>\nvoid Core::processInsn<OpTraits::OpType::{0}>(const Types::Insn &i)'
+handler_decl = 'template<>\nvoid Core::processInsn<OpTypes::OpType::{0}>(const Types::Insn &i)'
 
 # translation table
 repl_table = [ ('GPR', 'registerMap'),
@@ -113,7 +113,7 @@ def generate_cxx():
     out = open(out_c, 'w')
 
     out.write('#include "core.h"\n')
-    out.write('#include "common/insn.h"\n')
+    out.write('#include "common/dec_types.h"\n')
     out.write('\n')
     out.write('namespace Simulator {\n\n')
     out.write('namespace Core {\n\n')
@@ -129,7 +129,7 @@ def generate_cxx():
     indent = '  '
     out.write('void Core::initHandlers() {\n')
     for num in range(0, len(insns)):
-        cast = 'static_cast<OpTraits::OpType>({0})'.format(num)
+        cast = 'static_cast<OpTypes::OpType>({0})'.format(num)
         out.write('{0}insnHandlers[{1}] = &Core::processInsn<{2}>;\n'.format(indent, num, cast))
     out.write('}\n')
 

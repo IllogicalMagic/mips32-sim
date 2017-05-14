@@ -2,7 +2,6 @@
 #define SIM_MIPS32_COMMON_DEC_TYPES_HEADER__
 
 #include "types.h"
-#include "op_traits.h"
 
 namespace Simulator {
 
@@ -12,12 +11,15 @@ namespace Types {
   typedef word_t imm_t;
 
   namespace OpTypes {
-      enum OpType {
-          //TODO To be filled
-      };
+  
+  enum OpType {
+    #include "opnum.h"
+    OpNum
+  };
+  
   }
 
-  struct Instruction {
+  struct Insn {
     OpTypes::OpType op;
     regn_t rs;
     regn_t rt;

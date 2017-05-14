@@ -82,6 +82,7 @@ public:
 }; // class Core
 
 #include "sysreg_decl.h"
+#include "insn_handlers.h"
 
 } // namespace Core
 

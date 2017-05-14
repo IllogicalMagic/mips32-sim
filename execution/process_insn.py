@@ -99,19 +99,10 @@ def generate_h():
     out.write('#ifndef SIM_MIPS32_GENERATED_HANDLERS_H__\n')
     out.write('#define SIM_MIPS32_GENERATED_HANDLERS_H__\n\n')
 
-    out.write('#include "core.h"\n')
-    out.write('#include "common/insn.h"\n')
-    out.write('\n')
-    out.write('namespace Simulator {\n\n')
-    out.write('namespace Core {\n\n')
-
     for insn in insns.iterkeys():
         out.write(handler_decl.format(insn.capitalize()))
         out.write(';\n')
     out.write('\n')
-
-    out.write('} //namespace Core\n\n')
-    out.write('} //namespace Simulator\n\n')
 
     out.write('#endif\n\n')
 

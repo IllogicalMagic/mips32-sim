@@ -39,7 +39,7 @@ Insn decode_word(word_t word) {
 
   Insn parsed;
   unsigned opcode = get_bits(op_range, word);
-  if (!opcode) {//special
+  if (opcode == SPEC_CMD) {//special
     opcode = get_bits(func_range, word);
     parsed.op = match_op(static_cast<spec_command_name>(opcode));
     //parsed.type = Commands::cmd_type::SPEC_CMD;	//TODO sllv, srav
@@ -49,7 +49,7 @@ Insn decode_word(word_t word) {
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);                
   }
-  else if (opcode == 0b010000) {//COP0
+  else if (opcode == COP_CMD) {//COP0
     opcode = get_bits(func_range, word);
     parsed.op = match_op(static_cast<cop0_command_name>(opcode));
       //parsed.type = Commands::COP_CMD;

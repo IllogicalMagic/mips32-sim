@@ -18,6 +18,7 @@ beq = 0b000100
 bne = 0b000101
 j = 0b000010
 jal = 0b000011
+halt = 0b111111
 }
 
 spec_command_name

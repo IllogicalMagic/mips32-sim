@@ -45,6 +45,9 @@ int main() {
 	std::cout << "rt, rs, imm = " << instr.rt << " " << instr.rs << " " << instr.imm << std::endl;
 //	test(instr.type == Commands::CMD && instr.op == Commands::beq, instr);
 	test (instr.op == OpTypes::Beq, instr);
+	
+	instr = decode_word(0b11111100000000000000000000000000); //HALT
+	test (instr.op == OpTypes::Halt, instr);
 
 	return 0;
 }

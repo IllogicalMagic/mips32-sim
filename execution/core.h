@@ -135,6 +135,9 @@ public:
     PC += 4;
   }
 
+  // Fetch next insn, returning true on success
+  bool fetch(uword_t &w);
+
   ~Core();
 }; // class Core
 

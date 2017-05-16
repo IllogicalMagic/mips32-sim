@@ -71,6 +71,18 @@ void Core::raiseException(ExcType ex, ExcCode code) {
   }
 }
 
+bool Core::fetch(uword_t &w) {
+  MMU::PhysAddr pAddr;
+  auto excT = tlb->translate(PC, pAddr);
+  if (excT != ExcType::None) {
+    raiseException(excT, ExcCode::TLBL);
+    return false;
+  }
+  w = *(reinterpret_cast<uword_t *>(memory + pAddr));
+  return true;
+}
+
+
 Core::~Core() {
   delete tlb;
   delete[] memory;

@@ -20,6 +20,7 @@ repl_table = [ ('GPR', 'registerMap'),
                ('rs' , 'i.rs'),
                ('rt' , 'i.rt'),
                ('rd' , 'i.rd'),
+               ('imm', 'i.imm'),
                ('S.' , 'sysregs.'),
                ('.u' , '.uVal'),
                ('.s' , '.sVal'),
@@ -113,6 +114,7 @@ def generate_cxx():
     out = open(out_c, 'w')
 
     out.write('#include "core.h"\n')
+    out.write('#include "mmu.h"\n')
     out.write('#include "common/dec_types.h"\n')
     out.write('\n')
     out.write('namespace Simulator {\n\n')

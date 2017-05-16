@@ -23,3 +23,23 @@ add:
   }
   GPR[rd].u = tmp;
 }
+
+sw:
+{
+  uw_t vAddr = GPR[rs].u + static_cast<w_t>(imm);
+  badVAddr = vAddr;
+  if (vAddr & 0x3) {
+    raiseException(ExcType::AddressError, ExcCode::AdES);
+    return;
+  }
+
+  uw_t pAddr;
+  auto excT = tlb->translate(vAddr, pAddr);
+  if (excT != ExcType::None) {
+    auto excC = (excT == ExcType::TLBMod) ? ExcCode::Mod : ExcCode::TLBS;
+    raiseException(excT, excC);
+    return;
+  }
+
+  *reinterpret_cast<uw_t *>(memory + pAddr) = GPR[rt].u;
+}

@@ -18,7 +18,7 @@ namespace Decoder {
 	  //enum cop0_command_name
 
 	  enum cmd_type{
-      CMD = -1, SPEC_CMD = 0, COP_CMD = 0b010000
+	    CMD = -1, SPEC_CMD = 0, SPEC2_CMD = 0b011100, COP_CMD = 0b010000
 	  };
   }
 

@@ -41,6 +41,11 @@ mfhi = 0b010000
 mflo = 0b010010
 }
 
+spec2_command_name
+{
+mul = 000010
+}
+
 cop0_command_name
 {
 tlbp = 0b001000

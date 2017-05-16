@@ -30,6 +30,11 @@ OpTypes::OpType match_op(Commands::spec_command_name entry) {
 }	
 	
 template <>
+OpTypes::OpType match_op(Commands::spec2_command_name entry) {
+  return spec2_command_name_matcher.find(entry)->second;	
+}
+
+template <>
 OpTypes::OpType match_op(Commands::cop0_command_name entry) {
   return cop0_command_name_matcher.find(entry)->second;
 }
@@ -48,6 +53,14 @@ Insn decode_word(word_t word) {
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);                
+  }
+  else if (opcode == SPEC2_CMD) {//special2 - only mul handling
+    opcode = get_bits(func_range, word);
+    parsed.rd = get_bits(rd_range, word);
+    parsed.rs = get_bits(rs_range, word);
+    parsed.rt = get_bits(rt_range, word); 
+    parsed.op = match_op(static_cast<spec2_command_name>(opcode));
+  
   }
   else if (opcode == COP_CMD) {//COP0
     opcode = get_bits(func_range, word);

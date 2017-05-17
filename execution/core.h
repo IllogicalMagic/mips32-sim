@@ -17,18 +17,18 @@ using namespace Types;
 constexpr size_t GPRCount = 32;
 constexpr size_t TLBEntries = 16;
 
-struct GPReg {
-  union {
-    uword_t uVal;
-    word_t sVal;
-  };
+union CalcReg{
+  uword_t uVal;
+  word_t sVal;
 };
 
 class Core {
   // State variables
+  using GPReg = CalcReg;
   uword_t PC;
   bool isInDelaySlot;
   std::array<GPReg, GPRCount> registerMap;
+  CalcReg HI, LO;
 
   struct SR {
 #include "sysregs.h"

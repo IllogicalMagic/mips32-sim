@@ -1,4 +1,5 @@
 #include "core.h"
+#include "mmu.h"
 
 #define EXTRACT_BITS(x, end, beg)                           \
   (((x) & ((~static_cast<decltype(x)>(0)) << (end - beg))) >> beg)
@@ -7,8 +8,14 @@ namespace Simulator {
 
 namespace Core {
 
-Core::Core():
+Core::Core(size_t memSize):
   PC(0), isInDelaySlot(false), registerMap({0}), badVAddr(0), ASID(0) {
+
+  // Memory init
+  tlb = new MMU::TLB(sysregs.EntryLo0, sysregs.EntryLo1, sysregs.EntryHi,
+                     sysregs.PageMask, sysregs.Status);
+  memory = new ubyte_t[memSize];
+
   initSysregs();
   initHandlers();
 }
@@ -62,6 +69,11 @@ void Core::raiseException(ExcType ex, ExcCode code) {
   default:
     break;
   }
+}
+
+Core::~Core() {
+  delete tlb;
+  delete[] memory;
 }
   
 } // namespace Core

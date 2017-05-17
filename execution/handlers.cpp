@@ -10,6 +10,8 @@
 # rs, rt, rd, GPR, imm, HI, LO
 # S. used for sysreg access
 
+#Arithmetical instructions
+
 addu:
 {
   uw_t tmp = GPR[rs].u + GPR[rt].u;
@@ -300,4 +302,27 @@ srlv:
 {
   w_t shift = GPR[rs].s & 0x1f;
   GPR[rd].s = GPR[rt].s >> shift;
+}
+
+#END OF Arithmetical
+#Memory instructions
+
+sw:
+{
+  uw_t vAddr = GPR[rs].u + static_cast<w_t>(imm);
+  badVAddr = vAddr;
+  if (vAddr & 0x3) {
+    raiseException(ExcType::AddressError, ExcCode::AdES);
+    return;
+  }
+
+  uw_t pAddr;
+  auto excT = tlb->translate(vAddr, pAddr);
+  if (excT != ExcType::None) {
+    auto excC = (excT == ExcType::TLBMod) ? ExcCode::Mod : ExcCode::TLBS;
+    raiseException(excT, excC);
+    return;
+  }
+
+  *reinterpret_cast<uw_t *>(memory + pAddr) = GPR[rt].u;
 }

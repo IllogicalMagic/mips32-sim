@@ -5,7 +5,7 @@
 
 int main()
 {
-  Simulator::Core::Core C;
+  Simulator::Core::Core C(1024);
 
   C.testSysregs();
 

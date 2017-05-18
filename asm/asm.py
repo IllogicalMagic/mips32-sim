@@ -450,6 +450,6 @@ for insn_num, mn, op, op_type in need_fix_insn:
 out = open(dst,'wb')
 for word in encd_words:
     print word
-    out.write(pack('!I',word))
+    out.write(pack('I',word))
 out.close()
 

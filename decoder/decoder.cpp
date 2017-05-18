@@ -11,7 +11,7 @@ nop will be translated to sll
 
 namespace Simulator { namespace Decoder {
 
-unsigned get_bits(bit_range range, word_t from) {
+uword_t get_bits(bit_range range, word_t from) {
   assert(range.second > range.first);
   int len = range.second - range.first;
   word_t mask = ((1 << len) - 1);
@@ -22,15 +22,16 @@ unsigned get_bits(bit_range range, word_t from) {
     
 Insn decode_word(word_t word) {
   using namespace Commands;
+  using namespace Types;  
 
   Insn parsed;
-  unsigned opcode = get_bits(op_range, word);
+  uword_t opcode = get_bits(op_range, word);
   if (opcode == SPEC_CMD) {//special
     opcode = get_bits(func_range, word);
     parsed.op = match_op(static_cast<spec_command_name>(opcode));
     //parsed.type = Commands::cmd_type::SPEC_CMD;	//TODO sllv, srav
     if (std::find(shift_cmds.begin(), shift_cmds.end(), opcode) != shift_cmds.end())
-      parsed.imm = static_cast<int>(get_bits(shift_range, word));	//warning here
+      parsed.imm = static_cast<word_t>(get_bits(shift_range, word));
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);                
@@ -49,7 +50,7 @@ Insn decode_word(word_t word) {
       //parsed.type = Commands::COP_CMD;
   }
   else if (opcode == J || opcode == Jal) {
-    parsed.imm = static_cast<int>(get_bits(address_range, word) << 2);	//warning here
+    parsed.imm = static_cast<word_t>(get_bits(address_range, word) << 2);
     parsed.op = match_op(static_cast<command_name>(opcode));
   }
   else {
@@ -60,15 +61,15 @@ Insn decode_word(word_t word) {
 	
     if (std::find (signed_ops.begin(), ops_arr_end, opcode) != ops_arr_end) {
       //operation is signed
-      int16_t imm = 0xffff & word;
+      hword_t imm = 0xffff & word;
       parsed.imm = imm;
 	  }
 	  else if (opcode == Beq || opcode == Bne) {
-      unsigned offset = (0xffff & word) << 2;
-      parsed.imm = static_cast<int>(offset);	//warning here
+      hword_t offset = (0xffff & word);
+      parsed.imm = static_cast<word_t>(offset) << 2;
 	  }
     else {//unsigned op
-      uint16_t imm = 0xffff & word;
+      uhword_t imm = 0xffff & word;
       parsed.imm = imm;
 	  }
     	

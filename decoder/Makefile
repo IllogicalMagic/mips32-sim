@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-std=c++14 -Wall
-GEN_LIST=dec_cmds.h map_match.h
+GEN_LIST=dec_cmds.h map_match.h matchers.hpp
 
 all: gen_op_types decoder test
 

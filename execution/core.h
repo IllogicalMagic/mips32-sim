@@ -25,6 +25,17 @@ using MMU::TLBEntries;
 
 constexpr size_t GPRCount = 32;
 
+namespace Synonyms {
+
+enum Regs {
+  Zero = 0,
+  SP = 29,
+  FP = 30,
+  RA = 31,
+};
+
+}
+
 union CalcReg{
   uword_t uVal;
   word_t sVal;
@@ -161,7 +172,7 @@ public:
 
   void executeInsn(const Insn &i) {
     PC += 4;
-    registerMap[0].uVal = 0;
+    registerMap[Synonyms::Zero].uVal = 0;
     (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
   }
 

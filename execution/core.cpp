@@ -17,6 +17,11 @@ Core::Core(size_t memSize):
                      sysregs.PageMask, sysregs.Status);
   memory = new ubyte_t[memSize];
 
+  // Init stack and frame pointers.
+  // For now we have no way except this to do so.
+  registerMap[Synonyms::SP].uVal = memSize;
+  registerMap[Synonyms::FP].uVal = memSize;
+
   initSysregs();
   initHandlers();
 }

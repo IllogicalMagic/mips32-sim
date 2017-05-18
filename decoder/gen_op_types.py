@@ -6,16 +6,25 @@
 #uses op_match to create enums in dec_cmds
 #uses opnum.h to match to the commands
 
+class DecoderMatchersGen:
+	def __init__ (self, out_f):
+		self._file = open(out_f + '.hpp', 'w')
+		
+	def new_matcher(self, enum_name):
+		self._file.write('template<>\n')
+		self._file.write('OpTypes::OpType match_op(Commands::' + enum_name + ' entry) {\n')
+		self._file.write('  return ' + enum_name + '_matcher.find(entry)->second;\n}\n\n')
+		
+	def finalize(self):
+		self._file.close()
+
 class DecoderMapGen:
-#constexpr std::map<DecEnType, Types::OpTypes::OpType> command_name_matcher, spec_command_name_matcher, cop0_command_name_matcher;
 	def __init__ (self, out_f):
 		self._file = open(out_f + '.h', 'w')
-		#self._filling_map = false
 		
 	def start_new_map(self, enum_name):
 		self._file.write('const std::map<Commands::' + enum_name + ', Types::OpTypes::OpType> ' + enum_name + '_matcher = {\n')
 		
-	#{Commands::<name>, OpTypes::<name>}
 	def add_member(self, mem_name):
 		self._file.write('  {{Commands::{0}, OpTypes::{0}}},\n'.format(mem_name))
 	
@@ -26,10 +35,11 @@ class DecoderMapGen:
 		self._file.close()
 
 class DecoderTypesGen:
-	def __init__(self, out_enums, out_map):
+	def __init__(self, out_enums, out_map, out_match):
 		self._file = open(out_enums + '.h', 'w')
 		self._file.write('''#ifndef {0}\n#define {0}\n\n'''.format('SIM_MIPS32_DECODER_' + out_enums.upper() + '__'))
 		self._map_gen = DecoderMapGen(out_map)
+		self._match_gen = DecoderMatchersGen(out_match)
 		
 	def new_enum(self, name, in_file):
 		assert (not in_file.closed)
@@ -40,6 +50,7 @@ class DecoderTypesGen:
 		
 		self._file.write('enum ' + name + '{\n')
 		self._map_gen.start_new_map(name)
+		self._match_gen.new_matcher(name)
 		
 		line = in_file.readline()[:-1]
 		while not line == "}":
@@ -56,15 +67,38 @@ class DecoderTypesGen:
 		self._file.write('#endif')
 		self._file.close()
 		self._map_gen.finalize()
+		self._match_gen.finalize()
+
+
+'''
+template <>
+OpTypes::OpType match_op(Commands::command_name entry) {
+  return command_name_matcher.find(entry)->second;	
+}
+
+template <>
+OpTypes::OpType match_op(Commands::spec_command_name entry) {
+  return spec_command_name_matcher.find(entry)->second;
+}	
+	
+template <>
+OpTypes::OpType match_op(Commands::spec2_command_name entry) {
+  return spec2_command_name_matcher.find(entry)->second;	
+}
+
+template <>
+OpTypes::OpType match_op(Commands::cop0_command_name entry) {
+  return cop0_command_name_matcher.find(entry)->second;
+}'''
 
 if __name__ == "__main__":
 	enums_fname = 'dec_cmds'
 	map_fname = 'map_match'
+	match_fname = 'matchers'
 	
-	out_gen = DecoderTypesGen(enums_fname, map_fname)
+	out_gen = DecoderTypesGen(enums_fname, map_fname, match_fname)
 	
 	in_dec_ops = open('op_match.txt', 'r')
-	#in_com_ops = open('../common/opnum.h', 'r')		
 
 	for line in in_dec_ops:
 		line = line[:-1]

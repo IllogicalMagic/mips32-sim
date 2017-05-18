@@ -18,7 +18,9 @@ namespace Decoder {
 	  //enum cop0_command_name
 
 	  enum cmd_type{
-	    CMD = -1, SPEC_CMD = 0, SPEC2_CMD = 0b011100, COP_CMD = 0b010000
+	    CMD = -1, 
+	    SPEC_CMD = 0, SPEC2_CMD = 0b011100, SPEC3_CMD = 0b011111,
+	    COP_CMD = 0b010000
 	  };
   }
 
@@ -33,11 +35,11 @@ namespace Decoder {
   constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
   constexpr bit_range shift_range = {6, 11};
   constexpr bit_range func_range = {0, 6};
-
-  constexpr std::array<Commands::spec_command_name, 3> shift_cmds = {Commands::Sll, Commands::Sra, Commands::Srl};
-  constexpr std::array<Commands::command_name, 7> signed_ops = {
+  
+  constexpr std::array<Commands::spec_command_name, 4> shift_icmds = {Commands::Sll, Commands::Sra, Commands::Srl, Commands::Rotr};
+  constexpr std::array<Commands::command_name, 8> signed_ops = {
     Commands::Addi, Commands::Andi, Commands::Ori, Commands::Xori,
-    Commands::Lw, Commands::Lh, Commands::Lb };
+    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti };
 
   Insn decode_word(word_t word);
   uword_t get_bits(bit_range range, word_t from);

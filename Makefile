@@ -40,7 +40,7 @@ endef
 
 
 all: generate build
-	cp main/simulator .
+	cp main/simulator asm/asm.py .
 
 generate:
 	$(foreach DIR, $(GENDIRS), $(GEN))
@@ -49,6 +49,6 @@ build:
 	$(foreach DIR, $(SUBDIRS), $(PAT))
 
 clean:
-	rm -rf *~ *.o simulator
+	rm -rf *~ *.o simulator asm.py
 	$(foreach DIR, $(SUBDIRS), $(CLEAN))
 

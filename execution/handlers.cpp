@@ -12,8 +12,6 @@
 
 #Arithmetic instructions
 
-#include "func.h"
-
 addu:
 {
   uw_t tmp = GPR[rs].u + GPR[rt].u;
@@ -22,8 +20,8 @@ addu:
 
 add:
 {
-  dw_t tmp = static_cast<dw_t>GPR[rs].s + GPR[rt].s;
-  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31)) {
+  dw_t tmp = static_cast<dw_t>(GPR[rs].s) + GPR[rt].s;
+  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31) {
     raiseException(ExcType::IntegerOverflow, ExcCode::Ov);
     return;
   }
@@ -33,7 +31,7 @@ add:
 addi:
 {
   dw_t tmp = static_cast<dw_t>(GPR[rs].s) + imm;
-  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31)) {
+  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31) {
     raiseException(ExcType::IntegerOverflow, ExcCode::Ov);
     return;
   }
@@ -49,7 +47,7 @@ addiu:
 sub:
 {
   dw_t tmp = static_cast<dw_t>(GPR[rs].s) - GPR[rt].s;
-  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31)) {
+  if ((tmp & 0x100000000) >> 32 != (tmp & 0x80000000) >> 31) {
     raiseException(ExcType::IntegerOverflow, ExcCode::Ov);
     return;
   }
@@ -164,8 +162,6 @@ lui:
   GPR[rt].u = tmp;
 }
 
-#Not implemented by decoder yet
-
 nor:
 {
   uw_t tmp = ~(GPR[rs].u | GPR[rt].u);
@@ -176,7 +172,7 @@ clo:
 {
   uw_t res = l_zero(~GPR[rs].u);
   GPR[rd].u = res;
-} 
+}
     
 clz:
 {
@@ -187,7 +183,7 @@ clz:
 madd:
 {
   dw_t prod =  static_cast<dw_t>(GPR[rs].s) * GPR[rt].s;
-  dw_t addent =  static_cast<dw_t>(HI.s) << 32 + LO.s;
+  dw_t addent =  (static_cast<dw_t>(HI.s) << 32) + LO.s;
   prod += addent;
   LO.s = prod & 0xffffffff;
   HI.s = prod >> 32;
@@ -196,7 +192,7 @@ madd:
 maddu:
 {
   udw_t prod = GPR[rs].u * GPR[rt].u;
-  udw_t addent = static_cast<udw_t>(HI.s) << 32 + LO.u;
+  udw_t addent = (static_cast<udw_t>(HI.s) << 32) + LO.u;
   prod += addent;
   LO.s = prod & 0xffffffff;
   HI.s = prod >> 32;
@@ -205,7 +201,7 @@ maddu:
 msub:
 {
   dw_t prod = GPR[rs].s * GPR[rt].s;
-  dw_t res = static_cast<dw_t>(HI.s) << 32 + LO.s - prod;
+  dw_t res = (static_cast<dw_t>(HI.s) << 32) + LO.s - prod;
   LO.s = res & 0xffffffff;
   HI.s = res >> 32;
 }
@@ -213,7 +209,7 @@ msub:
 msubu:
 {
   udw_t prod = GPR[rs].u * GPR[rt].u;
-  udw_t res = static_cast<udw_t>(HI.s) << 32 + LO.u - prod;
+  udw_t res = (static_cast<udw_t>(HI.s) << 32) + LO.u - prod;
   LO.s = res & 0xffffffff;
   HI.s = res >> 32;
 }
@@ -244,7 +240,7 @@ slti:
 
 sltiu:
 {
-  GPR[rt].u = (GPR[rs].u < imm);
+  GPR[rt].u = (GPR[rs].u < static_cast<uw_t>(imm));
 }
 
 sltu:
@@ -254,15 +250,15 @@ sltu:
 
 rotr:
 {
-  w_t tmp = GPR[rt].u & (1 << imm - 1);
-  GPR[rd].u = tmp << (32 - imm) + GPR[rt].u >> imm;
+  w_t tmp = GPR[rt].u & ((1 << imm) - 1);
+  GPR[rd].u = (tmp << (32 - imm)) + (GPR[rt].u >> imm);
 }
 
 rotrv:
 {
   w_t shift = GPR[rs].u & 0x1f;
-  w_t tmp = GPR[rt].u & (1 << shift - 1);
-  GPR[rd].u = tmp << (32 - shift) + GPR[rt].u >> shift;
+  w_t tmp = GPR[rt].u & ((1 << shift) - 1);
+  GPR[rd].u = (tmp << (32 - shift)) + (GPR[rt].u >> shift);
 }
 
 sllv:

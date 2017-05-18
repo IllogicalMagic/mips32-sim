@@ -4,10 +4,8 @@ OBJ=decoder.o
 
 all: $(OBJ)
 
-generate: gen_op_types
-
-gen_op_types: gen_op_types.py op_match.txt
-	./$@.py
+generate: gen_op_types.py op_match.txt
+	./gen_op_types.py
 
 test: decoder.o test.o
 

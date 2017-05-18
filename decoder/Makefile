@@ -1,5 +1,4 @@
-GEN_LIST=dec_cmds.h map_match.h
-
+GEN_LIST=dec_cmds.h map_match.h matchers.hpp
 OBJ=decoder.o
 
 all: $(OBJ)

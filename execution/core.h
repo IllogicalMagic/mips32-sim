@@ -10,6 +10,7 @@
 #include "common/types.h"
 #include "common/dec_types.h"
 #include "memory.h"
+#include "decoder/decoder.h"
 
 namespace Simulator {
 
@@ -36,7 +37,10 @@ class Core {
 
   // State variables
   uword_t PC;
+  // For branch delay slot
+  uword_t nextPC;
   bool isInDelaySlot;
+
   std::array<GPReg, GPRCount> registerMap;
 
   // Memory management
@@ -144,9 +148,21 @@ public:
     return I.rt;
   }
 
+  void executeDelaySlotInsn(bool condition) {
+    isInDelaySlot = true;
+    uword_t w;
+    fetch(w);
+    Insn i = Decoder::decode_word(w);
+    executeInsn(i);
+    if (condition)
+      PC = nextPC;
+    isInDelaySlot = false;
+  }
+
   void executeInsn(const Insn &i) {
-    (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
     PC += 4;
+    registerMap[0].uVal = 0;
+    (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
   }
 
   // Fetch next insn, returning true on success

@@ -24,6 +24,12 @@ add:
   GPR[rd].u = tmp;
 }
 
+beq:
+{
+  nextPC = PC + imm;
+  executeDelaySlotInsn(GPR[rs].u == GPR[rt].u);
+}
+
 sw:
 {
   uw_t vAddr = GPR[rs].u + static_cast<w_t>(imm);

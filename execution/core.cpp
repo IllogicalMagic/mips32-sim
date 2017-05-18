@@ -9,7 +9,8 @@ namespace Simulator {
 namespace Core {
 
 Core::Core(size_t memSize):
-  run(true), PC(0), isInDelaySlot(false), registerMap({0}), badVAddr(0), ASID(0) {
+  run(true), PC(0), nextPC(0), isInDelaySlot(false),
+  registerMap({0}), badVAddr(0), ASID(0) {
 
   // Memory init
   tlb = new MMU::TLB(sysregs.EntryLo0, sysregs.EntryLo1, sysregs.EntryHi,

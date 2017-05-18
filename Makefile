@@ -1,6 +1,6 @@
 CXX?=g++
 CXXSTD?=c++14
-CXXWARN?=-Wall -Werror --pedantic-errors -Wno-unused-variable
+CXXWARN?=-Wall -Werror --pedantic-errors -Wno-unused-variable -Wno-unused-result
 
 ifeq ($(MODE), release)
 FLTO?=-flto

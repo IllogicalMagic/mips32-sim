@@ -26,7 +26,6 @@ int main() {
 	instr = decode_word(0b00001110000000000000000000000000);	//JAL
 	std::cout << "target " << instr.imm << std::endl;
 	test (instr.op == OpTypes::Jal, instr);
-	std::cout << "Right opcode and command type\n" << std::endl;
 	
 	instr = decode_word(0b00100001000001001000000000000001); //ADDI 4,8, -32767
 	std::cout << "rt, rs, imm = " << instr.rt << " " << instr.rs << " " << instr.imm << std::endl;

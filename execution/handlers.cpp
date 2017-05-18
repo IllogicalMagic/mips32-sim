@@ -148,7 +148,7 @@ sll:
 
 sra:
 {
-  uw_t tmp = arithmetic_rshift(GPR[rt].u, imm);
+  uw_t tmp = r_shift(GPR[rt].u, imm);
   GPR[rd].u = tmp;
 }
 
@@ -280,7 +280,7 @@ srav:
 srlv:
 {
   w_t shift = GPR[rs].s & 0x1f;
-  GPR[rd].u = arithmetic_rshift(GPR[rt].s, shift);
+  GPR[rd].u = r_shift(GPR[rt].u, shift);
 }
 
 #END OF Arithmetical

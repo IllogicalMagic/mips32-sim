@@ -25,23 +25,23 @@ using MMU::TLBEntries;
 
 constexpr size_t GPRCount = 32;
 
-struct GPReg {
-  union {
-    uword_t uVal;
-    word_t sVal;
-  };
+union CalcReg{
+  uword_t uVal;
+  word_t sVal;
 };
 
 class Core {
   bool run;
 
   // State variables
+  using GPReg = CalcReg;
   uword_t PC;
   // For branch delay slot
   uword_t nextPC;
   bool isInDelaySlot;
 
   std::array<GPReg, GPRCount> registerMap;
+  CalcReg HI, LO;
 
   // Memory management
   ubyte_t *memory;

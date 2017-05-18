@@ -26,7 +26,8 @@ repl_table = [ ('GPR', 'registerMap'),
                ('.u' , '.uVal'),
                ('.s' , '.sVal'),
                ('w_t', 'word_t'),
-               ('b_t', 'byte_t') ]
+               ('b_t', 'byte_t'),
+               ('r_shift', 'arithmetic_rshift') ]
 
 def process_line(line):
     global insns
@@ -119,6 +120,7 @@ def generate_cxx():
     out.write('#include "core.h"\n')
     out.write('#include "mmu.h"\n')
     out.write('#include "common/dec_types.h"\n')
+    out.write('#include "func.h"\n')
     out.write('#include "common/debug.h"\n')
     out.write('\n')
     out.write('namespace Simulator {\n\n')

@@ -202,6 +202,16 @@ maddu:
   HI.s = prod >> 32;
 }
 
+mfhi:
+{
+  GPR[rd].u = HI.u;
+}
+
+mflo:
+{
+  GPR[rd].u = LO.u;
+}
+
 msub:
 {
   dw_t prod = GPR[rs].s * GPR[rt].s;
@@ -286,6 +296,25 @@ srlv:
 #END OF Arithmetical
 #Memory instructions
 
+lw:
+{
+  uw_t vAddr = GPR[rs].u + static_cast<w_t>(imm);
+  badVAddr = vAddr;
+  if (vAddr & 0x3) {
+    raiseException(ExcType::AddressError, ExcCode::AdEL);
+    return;
+  }
+
+  uw_t pAddr;
+  auto excT = tlb->translate(vAddr, pAddr);
+  if (excT != ExcType::None) {
+    raiseException(excT, ExcCode::TLBL);
+    return;
+  }
+
+  GPR[rt].u = *reinterpret_cast<uw_t *>(memory + pAddr);
+}
+
 sw:
 {
   uw_t vAddr = GPR[rs].u + static_cast<w_t>(imm);
@@ -312,6 +341,26 @@ beq:
 {
   nextPC = PC + imm;
   executeDelaySlotInsn(GPR[rs].u == GPR[rt].u);
+}
+
+j:
+{
+  nextPC = ((PC - 4) & ~0x7FFFFFF) + imm;
+  executeDelaySlotInsn(true);
+}
+
+jal:
+{
+  // Since we increment PC before executing insn there should be + 4
+  GPR[Synonyms::RA].u = PC + 4;
+  nextPC = ((PC - 4) & ~0x7FFFFFF) + imm;
+  executeDelaySlotInsn(true);
+}
+
+jr:
+{
+  nextPC = GPR[rs].u;
+  executeDelaySlotInsn(true);
 }
 
 halt:

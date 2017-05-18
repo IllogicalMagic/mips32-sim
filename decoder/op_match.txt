@@ -24,7 +24,7 @@ halt = 0b111111
 spec_command_name
 {
 add = 0b100000
-addu = 0b100000
+addu = 0b100001
 sub = 0b100010
 subu = 0b100011
 mult = 0b011000
@@ -43,7 +43,7 @@ mflo = 0b010010
 
 spec2_command_name
 {
-mul = 000010
+mul = 0b000010
 }
 
 cop0_command_name

@@ -18,26 +18,7 @@ unsigned get_bits(bit_range range, word_t from) {
   return (from >> range.first) & mask;
 }
 
-//TODO add to generation
-template <>
-OpTypes::OpType match_op(Commands::command_name entry) {
-  return command_name_matcher.find(entry)->second;	
-}
-
-template <>
-OpTypes::OpType match_op(Commands::spec_command_name entry) {
-  return spec_command_name_matcher.find(entry)->second;
-}	
-	
-template <>
-OpTypes::OpType match_op(Commands::spec2_command_name entry) {
-  return spec2_command_name_matcher.find(entry)->second;	
-}
-
-template <>
-OpTypes::OpType match_op(Commands::cop0_command_name entry) {
-  return cop0_command_name_matcher.find(entry)->second;
-}
+#include "matchers.hpp"
     
 Insn decode_word(word_t word) {
   using namespace Commands;

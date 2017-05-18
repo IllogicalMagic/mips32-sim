@@ -6,6 +6,8 @@ andi = 0b001100
 ori = 0b001101
 xori = 0b001110
 lui = 0b001111
+slti = 0b001010
+sltiu = 0b001011
 lw = 0b100011
 lh = 0b100001
 lb = 0b100000
@@ -33,17 +35,42 @@ div = 0b011010
 divu = 0b011011
 and = 0b100100
 or = 0b100101
+nor = 0b100111
 xor = 0b100110
 sll = 0
+sllv = 0b000100
 sra = 0b000011
-srl = 0b000010
+srav = 0b000111
+
+#Additional bit at the start due to MIPS32 Release 2
+#where these commands were broken in pairs by their opcode
+srl = 0b0000010 
+rotr = 0b1000010
+srlv = 0b0000110
+rotrv = 0b1000110
+
+slt = 0b101010
+sltu = 0b101011
 mfhi = 0b010000
 mflo = 0b010010
 }
 
 spec2_command_name
 {
+clo = 0b100000
+clz = 0b100001
 mul = 0b000010
+madd = 0
+maddu = 0b1
+msub = 0b100
+msubu = 0b101
+}
+
+spec3_command_name
+#only BSHFL encoding supported
+{
+seb = 0b10000
+seh = 0b11000
 }
 
 cop0_command_name

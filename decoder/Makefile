@@ -14,4 +14,4 @@ decoder: decoder.cpp
 	$(CC) $(CFLAGS) $< -c -o $@.o
 	
 clean:
-	rm *~ $(GEN_LIST)
+	rm -rf $(GEN_LIST)

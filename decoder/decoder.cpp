@@ -11,7 +11,11 @@ nop will be translated to sll
 
 namespace Simulator { namespace Decoder {
 
-uword_t get_bits(bit_range range, word_t from) {
+inline unsigned char get_bit(int n, word_t from) {
+  return (from >> n) & 1;
+}
+
+inline uword_t get_bits(bit_range range, word_t from) {
   assert(range.second > range.first);
   int len = range.second - range.first;
   word_t mask = ((1 << len) - 1);
@@ -28,21 +32,35 @@ Insn decode_word(word_t word) {
   uword_t opcode = get_bits(op_range, word);
   if (opcode == SPEC_CMD) {//special
     opcode = get_bits(func_range, word);
+    if (opcode == Srl || opcode == Srlv) {//it may be rotr or rotrv
+      unsigned char r;
+      if (opcode == Srl)
+        r = get_bit(21, word);
+      else
+        r = get_bit(6, word);
+      assert(r <= 1);
+      opcode += (r) ? (1 << 6) : 0; //srl->rotr, srlv->rotrv
+    }
+          
     parsed.op = match_op(static_cast<spec_command_name>(opcode));
-    //parsed.type = Commands::cmd_type::SPEC_CMD;	//TODO sllv, srav
-    if (std::find(shift_cmds.begin(), shift_cmds.end(), opcode) != shift_cmds.end())
-      parsed.imm = static_cast<word_t>(get_bits(shift_range, word));
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);                
+    if (std::find(shift_icmds.begin(), shift_icmds.end(), opcode) != shift_icmds.end())
+      parsed.imm = static_cast<word_t>(get_bits(shift_range, word));
   }
-  else if (opcode == SPEC2_CMD) {//special2 - only mul handling
+  else if (opcode == SPEC2_CMD) {//special2
     opcode = get_bits(func_range, word);
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word); 
-    parsed.op = match_op(static_cast<spec2_command_name>(opcode));
-  
+    parsed.op = match_op(static_cast<spec2_command_name>(opcode)); 
+  }
+  else if (opcode == SPEC3_CMD) {
+    opcode = get_bits(shift_range, word);
+    parsed.rd = get_bits(rd_range, word);
+    parsed.rt = get_bits(rt_range, word); 
+    parsed.op = match_op(static_cast<spec3_command_name>(opcode)); 
   }
   else if (opcode == COP_CMD) {//COP0
     opcode = get_bits(func_range, word);
@@ -55,8 +73,6 @@ Insn decode_word(word_t word) {
   }
   else {
     parsed.op = match_op(static_cast<command_name>(opcode));
-    std::array<command_name, 7> signed_ops = {
-      Addi, Andi, Ori, Xori, Lw, Lh, Lb };
     auto ops_arr_end = signed_ops.end();
 	
     if (std::find (signed_ops.begin(), ops_arr_end, opcode) != ops_arr_end) {

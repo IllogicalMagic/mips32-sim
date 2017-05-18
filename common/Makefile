@@ -1,6 +1,6 @@
 GENERATED=opnum.h
 
-gen_opnum: gen_opnum.py tables.txt
+generate: gen_opnum.py tables.txt
 	./gen_opnum.py
 
 clean:

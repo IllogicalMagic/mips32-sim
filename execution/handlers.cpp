@@ -10,7 +10,7 @@
 # rs, rt, rd, GPR, imm, HI, LO
 # S. used for sysreg access
 
-#Arithmetical instructions
+#Arithmetic instructions
 
 #include "func.h"
 
@@ -304,4 +304,17 @@ sw:
   }
 
   *reinterpret_cast<uw_t *>(memory + pAddr) = GPR[rt].u;
+}
+
+#Branch instructions
+
+beq:
+{
+  nextPC = PC + imm;
+  executeDelaySlotInsn(GPR[rs].u == GPR[rt].u);
+}
+
+halt:
+{
+  run = false;
 }

@@ -3,11 +3,14 @@
 
 #include <array>
 #include <tuple>
+#include <functional>
 #include <cassert>
+#include <cstring>
 
 #include "common/types.h"
 #include "common/dec_types.h"
 #include "memory.h"
+#include "decoder/decoder.h"
 
 namespace Simulator {
 
@@ -28,10 +31,15 @@ union CalcReg{
 };
 
 class Core {
+  bool run;
+
   // State variables
   using GPReg = CalcReg;
   uword_t PC;
+  // For branch delay slot
+  uword_t nextPC;
   bool isInDelaySlot;
+
   std::array<GPReg, GPRCount> registerMap;
   CalcReg HI, LO;
 
@@ -39,6 +47,16 @@ class Core {
   ubyte_t *memory;
   MMU::TLB *tlb;
 
+public:
+  // Memory initialization function.
+  // Gets:
+  // address (for now it is physical);
+  // function that initializes given memory location.
+  void initMem(MMU::PhysAddr p, const std::function<void (ubyte_t *ptr)> &initFun) {
+    initFun(memory + p);
+  }
+
+private:
   struct SR {
 #include "sysregs.h"
   } sysregs;
@@ -130,9 +148,33 @@ public:
     return I.rt;
   }
 
+  void executeDelaySlotInsn(bool condition) {
+    isInDelaySlot = true;
+    uword_t w;
+    fetch(w);
+    Insn i = Decoder::decode_word(w);
+    executeInsn(i);
+    if (condition)
+      PC = nextPC;
+    isInDelaySlot = false;
+  }
+
   void executeInsn(const Insn &i) {
-    (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
     PC += 4;
+    registerMap[0].uVal = 0;
+    (this->*insnHandlers[static_cast<size_t>(i.op)])(i);
+  }
+
+  // Fetch next insn, returning true on success
+  bool fetch(uword_t &w);
+
+  bool isRunning() {
+    return run;
+  }
+
+  uword_t getReg(size_t index) {
+    assert(index < GPRCount);
+    return registerMap[index].uVal;
   }
 
   ~Core();

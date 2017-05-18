@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 
 import sys
+import os
 import fileinput
 import re
 import io
@@ -33,7 +34,7 @@ class Insn:
 
 args = sys.argv
 
-tables = '../common/tables.txt'
+table_paths = ['../common/tables.txt', 'common/tables.txt']
 src = args[1]
 if len(args) == 3:
     dst = args[2]
@@ -386,10 +387,13 @@ def encode_insn(mn, operands):
     print "Encoded: ", (bin(encd), hex(encd))
     return encd
 
-for line in fileinput.input(tables):
-    if line[0] != '#':
-        fill_dict(line)
-fileinput.close()
+for table in table_paths:
+    if os.path.exists(table):
+        for line in fileinput.input(table):
+            if line[0] != '#':
+                fill_dict(line)
+        fileinput.close()
+        break
 
 encd_words = []
 
@@ -450,6 +454,6 @@ for insn_num, mn, op, op_type in need_fix_insn:
 out = open(dst,'wb')
 for word in encd_words:
     print word
-    out.write(pack('!I',word))
+    out.write(pack('I',word))
 out.close()
 

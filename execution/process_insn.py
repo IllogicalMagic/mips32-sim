@@ -12,7 +12,8 @@ out_c = 'insn_handlers.cpp'
 out_h = 'insn_handlers.h'
 
 insns = {}
-handler_stub = ' {\n  assert(0 && "Unimplemented insn");\n}\n'
+debug_line = '  PRINT_DEBUG("Executed {0}\\n");\n'
+handler_stub = ' {{\n  PRINT_DEBUG("Executed {0}\\n");\n  assert(0 && "Unimplemented insn");\n}}\n'
 handler_decl = 'template<>\nvoid Core::processInsn<OpTypes::OpType::{0}>(const Types::Insn &i)'
 
 # translation table
@@ -34,7 +35,8 @@ def process_line(line):
     line = line.rstrip()
     matched = re.match('\w+', line)
     if matched:
-        insns[matched.group()] = handler_stub
+        mn = matched.group()
+        insns[mn] = handler_stub.format(mn)
 
 for line in fileinput.input(insn_table):
     if line[0] != '#' and line[0] != '\n':
@@ -65,6 +67,7 @@ def process_def(h, insn):
         print 'Expected }'
         raise BaseException
     handler_body.append(line)
+    handler_body.append(debug_line.format(insn))
 
     line = extract_line(h)
     while line != '}\n':
@@ -118,6 +121,7 @@ def generate_cxx():
     out.write('#include "mmu.h"\n')
     out.write('#include "common/dec_types.h"\n')
     out.write('#include "func.h"\n')
+    out.write('#include "common/debug.h"\n')
     out.write('\n')
     out.write('namespace Simulator {\n\n')
     out.write('namespace Core {\n\n')

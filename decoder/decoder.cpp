@@ -83,8 +83,8 @@ Insn decode_word(word_t word) {
       parsed.imm = imm;
 	  }
 	  else if (opcode == Beq || opcode == Bne) {
-      unsigned offset = (0xffff & word) << 2;
-      parsed.imm = static_cast<int>(offset);	//warning here
+      hword_t offset = (0xffff & word);
+      parsed.imm = static_cast<int>(offset) << 2;	//warning here
 	  }
     else {//unsigned op
       uint16_t imm = 0xffff & word;

@@ -43,3 +43,8 @@ sw:
 
   *reinterpret_cast<uw_t *>(memory + pAddr) = GPR[rt].u;
 }
+
+halt:
+{
+  run = false;
+}

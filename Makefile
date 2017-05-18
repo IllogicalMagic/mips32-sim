@@ -39,15 +39,16 @@ cd $(DIR) && $(MAKE) clean
 endef
 
 
-all: generate simulator
+all: generate build
+	cp main/simulator .
 
 generate:
 	$(foreach DIR, $(GENDIRS), $(GEN))
 
-simulator:
+build:
 	$(foreach DIR, $(SUBDIRS), $(PAT))
 
 clean:
-	rm -rf *~ *.o
+	rm -rf *~ *.o simulator
 	$(foreach DIR, $(SUBDIRS), $(CLEAN))
 

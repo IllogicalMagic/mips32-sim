@@ -3,7 +3,9 @@
 
 #include <array>
 #include <tuple>
+#include <functional>
 #include <cassert>
+#include <cstring>
 
 #include "common/types.h"
 #include "common/dec_types.h"
@@ -30,6 +32,8 @@ struct GPReg {
 };
 
 class Core {
+  bool run;
+
   // State variables
   uword_t PC;
   bool isInDelaySlot;
@@ -39,6 +43,16 @@ class Core {
   ubyte_t *memory;
   MMU::TLB *tlb;
 
+public:
+  // Memory initialization function.
+  // Gets:
+  // address (for now it is physical);
+  // function that initializes given memory location.
+  void initMem(MMU::PhysAddr p, const std::function<void (ubyte_t *ptr)> &initFun) {
+    initFun(memory + p);
+  }
+
+private:
   struct SR {
 #include "sysregs.h"
   } sysregs;
@@ -137,6 +151,15 @@ public:
 
   // Fetch next insn, returning true on success
   bool fetch(uword_t &w);
+
+  bool isRunning() {
+    return run;
+  }
+
+  uword_t getReg(size_t index) {
+    assert(index < GPRCount);
+    return registerMap[index].uVal;
+  }
 
   ~Core();
 }; // class Core

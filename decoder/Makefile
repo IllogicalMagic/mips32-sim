@@ -1,6 +1,8 @@
 GEN_LIST=dec_cmds.h map_match.h
 
-all: generate test
+OBJ=decoder.o
+
+all: $(OBJ)
 
 generate: gen_op_types
 

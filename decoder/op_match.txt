@@ -39,6 +39,7 @@ sra = 0b000011
 srl = 0b000010
 mfhi = 0b010000
 mflo = 0b010010
+jr = 0b001000
 }
 
 spec2_command_name

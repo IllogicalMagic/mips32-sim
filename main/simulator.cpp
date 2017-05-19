@@ -7,7 +7,7 @@
 #include "common/dec_types.h"
 
 // For now it is fixed.
-constexpr size_t memSize = 1024;
+constexpr size_t defaultMemSize = 1024;
 constexpr size_t maxFileSize = 1024 * 1024;
 
 #define PRINT_ERROR(...) do {                   \
@@ -17,7 +17,7 @@ constexpr size_t maxFileSize = 1024 * 1024;
 
 using namespace Simulator;
 
-void parseArgs(int argc, char **argv, char **fIn) {
+void parseArgs(int argc, char **argv, char **fIn, size_t &memSize) {
   for (int i = 1; i < argc; ++i) {
     // Parse --raw <file>.
     if (!strcmp("--raw", argv[i])) {
@@ -25,6 +25,12 @@ void parseArgs(int argc, char **argv, char **fIn) {
       if (i == argc)
         PRINT_ERROR("File should be specified after --raw option\n");
       *fIn = argv[i];
+    }
+    else if (!strcmp("--mem-size", argv[i])) {
+      ++i;
+      if (i == argc)
+        PRINT_ERROR("Number should follow --mem-size option\n");
+      memSize = strtoull(argv[i], NULL, 0);
     }
     else {
       PRINT_ERROR("Unknown option %s\n", argv[i]);
@@ -34,7 +40,7 @@ void parseArgs(int argc, char **argv, char **fIn) {
 
 // Loads raw image.
 // Takes image name and core.
-void loadRawImage(const char* fIn, Core::Core &core) {
+void loadRawImage(const char* fIn, Core::Core &core, size_t memSize) {
   FILE *f = fopen(fIn, "rb");
   if (!f)
     PRINT_ERROR("File %s is not found\n", fIn);
@@ -50,10 +56,11 @@ void loadRawImage(const char* fIn, Core::Core &core) {
 
 int main(int argc, char **argv) {
   char *in = nullptr;
-  parseArgs(argc, argv, &in);
+  size_t memSize = defaultMemSize;
+  parseArgs(argc, argv, &in, memSize);
 
   Core::Core core(memSize);
-  loadRawImage(in, core);
+  loadRawImage(in, core, memSize);
 
   Types::uword_t w;
   Types::Insn i;

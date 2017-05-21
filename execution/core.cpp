@@ -8,9 +8,16 @@ namespace Simulator {
 
 namespace Core {
 
+constexpr uword_t PCBegin = 0x80000000;
+
 Core::Core(size_t memSize):
-  run(true), PC(0), nextPC(0), isInDelaySlot(false),
+  run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
   registerMap({0}), badVAddr(0), ASID(0) {
+
+#ifdef TLB_DEBUG
+  // magic value to check two TLB records
+  memSize = 16408;
+#endif
 
   // Memory init
   tlb = new MMU::TLB(sysregs.EntryLo0, sysregs.EntryLo1, sysregs.EntryHi,
@@ -24,6 +31,33 @@ Core::Core(size_t memSize):
 
   initSysregs();
   initHandlers();
+
+#ifdef TLB_DEBUG
+  sysregs.EntryHi.VPN2 = 1;
+  sysregs.EntryLo0.PFN = 2;
+  sysregs.EntryLo0.D = 1;
+  sysregs.EntryLo0.V = 1;
+  sysregs.EntryLo0.G = 1;
+  sysregs.EntryLo1.PFN = 2;
+  sysregs.EntryLo1.D = 1;
+  sysregs.EntryLo1.V = 1;
+  sysregs.EntryLo1.G = 1;
+  sysregs.PageMask.Mask = 0;
+  tlb->write(3);
+
+  sysregs.EntryHi.VPN2 = 2;
+  sysregs.EntryLo0.PFN = 1;
+  sysregs.EntryLo0.D = 1;
+  sysregs.EntryLo0.V = 1;
+  sysregs.EntryLo0.G = 1;
+  sysregs.EntryLo1.PFN = 1;
+  sysregs.EntryLo1.D = 1;
+  sysregs.EntryLo1.V = 1;
+  sysregs.EntryLo1.G = 1;
+  sysregs.PageMask.Mask = 0;
+  tlb->write(15);
+
+#endif
 }
 
 // Algorithm from MIPS32 4K Processor Core Family Software User's Manual
@@ -79,7 +113,7 @@ void Core::raiseException(ExcType ex, ExcCode code) {
 
 bool Core::fetch(uword_t &w) {
   MMU::PhysAddr pAddr;
-  auto excT = tlb->translate(PC, pAddr);
+  auto excT = tlb->translate<MMU::AccType::Read>(PC, pAddr);
   if (excT != ExcType::None) {
     raiseException(excT, ExcCode::TLBL);
     return false;

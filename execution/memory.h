@@ -13,6 +13,11 @@ constexpr size_t TLBEntries = 16;
 typedef uword_t PhysAddr;
 typedef uword_t VirtAddr;
 
+enum class AccType {
+  Read,
+  Write
+};
+
 } // namespace MMU
 
 } // namespace Simulator

@@ -27,7 +27,8 @@ repl_table = [ ('GPR', 'registerMap'),
                ('.s' , '.sVal'),
                ('w_t', 'word_t'),
                ('b_t', 'byte_t'),
-               ('r_shift', 'arithmetic_rshift') ]
+               ('r_shift', 'arithmetic_rshift'),
+               ('AccType::', 'MMU::AccType::')]
 
 def process_line(line):
     global insns

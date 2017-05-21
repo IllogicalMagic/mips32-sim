@@ -302,7 +302,7 @@ lw:
   }
 
   uw_t pAddr;
-  auto excT = tlb->translate(vAddr, pAddr);
+  auto excT = tlb->translate<AccType::Read>(vAddr, pAddr);
   if (excT != ExcType::None) {
     raiseException(excT, ExcCode::TLBL);
     return;
@@ -321,7 +321,7 @@ sw:
   }
 
   uw_t pAddr;
-  auto excT = tlb->translate(vAddr, pAddr);
+  auto excT = tlb->translate<AccType::Write>(vAddr, pAddr);
   if (excT != ExcType::None) {
     auto excC = (excT == ExcType::TLBMod) ? ExcCode::Mod : ExcCode::TLBS;
     raiseException(excT, excC);

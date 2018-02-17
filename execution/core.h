@@ -71,8 +71,7 @@ public:
 
 private:
   // Insn handlers section
-  template<OpTypes::OpType Op>
-  void processInsn(const Insn &) {assert(0 && "Insn is not implemented");}
+#include "insn_handlers.h"
 
   typedef void (Core::*insnHandler)(const Insn &);
   std::array<insnHandler, static_cast<size_t>(OpTypes::OpType::OpNum)> insnHandlers;
@@ -156,8 +155,6 @@ public:
 
   ~Core();
 }; // class Core
-
-#include "insn_handlers.h"
 
 } // namespace Core
 

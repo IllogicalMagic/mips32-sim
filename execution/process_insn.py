@@ -14,7 +14,7 @@ out_h = 'insn_handlers.h'
 insns = {}
 debug_line = '  PRINT_DEBUG("Executed {0}\\n");\n'
 handler_stub = ' {{\n  PRINT_DEBUG("Executed {0}\\n");\n  assert(0 && "Unimplemented insn");\n}}\n'
-handler_decl = 'template<>\nvoid Core::processInsn<OpTypes::OpType::{0}>(const Types::Insn &i)'
+handler_decl = 'void {0}processInsn{1}(const Types::Insn &i)'
 
 # translation table
 repl_table = [ ('GPR', 'registerMap'),
@@ -106,7 +106,7 @@ def generate_h():
     out.write('#define SIM_MIPS32_GENERATED_HANDLERS_H__\n\n')
 
     for insn in insns.iterkeys():
-        out.write(handler_decl.format(insn.capitalize()))
+        out.write(handler_decl.format('', insn.capitalize()))
         out.write(';\n')
     out.write('\n')
 
@@ -128,7 +128,7 @@ def generate_cxx():
     out.write('namespace Core {\n\n')
 
     for insn, body in insns.iteritems():
-        out.write(handler_decl.format(insn.capitalize()))
+        out.write(handler_decl.format('Core::', insn.capitalize()))
         out.write(' ')
         for line in body:
             out.write(line)
@@ -137,9 +137,10 @@ def generate_cxx():
 
     indent = '  '
     out.write('void Core::initHandlers() {\n')
-    for num in range(0, len(insns)):
-        cast = 'static_cast<OpTypes::OpType>({0})'.format(num)
-        out.write('{0}insnHandlers[{1}] = &Core::processInsn<{2}>;\n'.format(indent, num, cast))
+    for num, (insn, _) in enumerate(insns.iteritems()):
+        insn = insn.capitalize()
+        cast = 'static_cast<size_t>(OpTypes::OpType::{0})'.format(insn)
+        out.write('{0}insnHandlers[{1}] = &Core::processInsn{2};\n'.format(indent, cast, insn))
     out.write('}\n')
 
     out.write('} //namespace Core\n\n')

@@ -3,7 +3,7 @@
 #include "decoder/decoder.h"
 #include "execution/core.h"
 #include "execution/mmu_types.h"
-#include "execution/tlb.h"
+#include "execution/fixed_mapping.h"
 #include "common/types.h"
 #include "common/dec_types.h"
 #include "support/options.h"
@@ -20,8 +20,9 @@ int main(int argc, char **argv) {
   size_t memSize = defaultMemSize;
   parseArgs(argc, argv, &in, memSize);
 
-  Core::Core<MMU::TLB> core(memSize);
+  Core::Core<MMU::FixedMapping> core(memSize);
   Loader::loadRawImage(in, core, memSize);
+  core.setPC(0);
 
   Types::uword_t w;
   Types::Insn i;

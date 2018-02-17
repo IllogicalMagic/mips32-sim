@@ -1,5 +1,6 @@
 #include "core.h"
-#include "mmu.h"
+#include "tlb.h"
+#include "fixed_mapping.h"
 
 #define EXTRACT_BITS(x, end, beg)                           \
   (((x) & ((~static_cast<decltype(x)>(0)) << (end - beg))) >> beg)
@@ -58,6 +59,12 @@ void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
   default:
     break;
   }
+}
+
+template<>
+void Core<MMU::FixedMapping>::raiseException(ExcType ex, ExcCode code) {
+  PRINT_DEBUG("Exception in appmode");
+  run = false;
 }
 
 } // namespace Core

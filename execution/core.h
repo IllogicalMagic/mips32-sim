@@ -10,11 +10,11 @@
 
 #include "common/types.h"
 #include "common/dec_types.h"
+#include "common/debug.h"
 #include "memory.h"
 #include "decoder/decoder.h"
 #include "sysreg_handler.h"
 #include "exec_types.h"
-#include "mmu.h"
 #include "func.h"
 
 namespace Simulator {
@@ -61,6 +61,9 @@ public:
   void initMem(MMU::PhysAddr p, const std::function<void (ubyte_t *ptr)> &initFun) {
     initFun(memory.get() + p);
   }
+
+  // Set new value of program counter.
+  void setPC(uword_t pc) { PC = pc; }
 
 private:
   // Insn handlers section

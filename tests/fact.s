@@ -1,7 +1,9 @@
 main:
         jal fact
         addi $a0, $0, 6
-        halt
+        addi $a0, $v0, 0
+        addi $v0, $0, 10
+        syscall
 fact:
 fact_prol:
         addi $sp, $sp, -8

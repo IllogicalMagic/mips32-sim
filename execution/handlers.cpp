@@ -359,6 +359,11 @@ jr:
   executeDelaySlotInsn(true);
 }
 
+syscall:
+{
+  raiseException(ExcType::Syscall, ExcCode::Sys);
+}
+
 halt:
 {
   run = false;

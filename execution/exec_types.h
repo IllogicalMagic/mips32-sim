@@ -25,6 +25,8 @@ enum class ExcType {
   MachineCheck,
   BusError,
   IntegerOverflow,
+
+  Syscall,
   None,
 };
 

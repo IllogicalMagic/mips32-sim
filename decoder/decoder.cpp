@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "decoder.h"
+#include "common/debug.h"
 
 /*NOTES:
 b will be translated to beq
@@ -41,7 +42,7 @@ Insn decode_word(word_t word) {
       assert(r <= 1);
       opcode += (r) ? (1 << 6) : 0; //srl->rotr, srlv->rotrv
     }
-          
+
     parsed.op = match_op(static_cast<spec_command_name>(opcode));
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);

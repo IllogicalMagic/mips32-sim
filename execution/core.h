@@ -27,6 +27,12 @@ namespace Synonyms {
 
 enum Regs {
   Zero = 0,
+  V0 = 2,
+  V1 = 3,
+  A0 = 4,
+  A1 = 5,
+  A2 = 6,
+  A3 = 7,
   SP = 29,
   FP = 30,
   RA = 31,
@@ -73,6 +79,7 @@ private:
   std::array<insnHandler, static_cast<size_t>(OpTypes::OpType::OpNum)> insnHandlers;
 
 private:
+  // Table 5-17 in MIPS 4Kc programming manual.
   enum class ExcCode {
     Int = 0,
     Mod = 1,
@@ -82,8 +89,13 @@ private:
     AdES = 5,
     IBE = 6,
     DBE = 7,
+    Sys = 8,
     Ov = 12,
     MCheck = 24
+  };
+
+  enum class Syscalls {
+    Exit = 10,
   };
 
   // For address insn

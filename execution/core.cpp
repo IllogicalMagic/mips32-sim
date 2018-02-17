@@ -63,7 +63,18 @@ void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
 
 template<>
 void Core<MMU::FixedMapping>::raiseException(ExcType ex, ExcCode code) {
-  PRINT_DEBUG("Exception in appmode");
+  if (ex == ExcType::Syscall) {
+    Syscalls SyscallNum = static_cast<Syscalls>(registerMap[Synonyms::V0].sVal);
+    if (SyscallNum == Syscalls::Exit) {
+      printf("Program exited with exit code %d.\n", registerMap[Synonyms::A0].sVal);
+    }
+    else {
+      printf("Unknown syscall number %d.\n", static_cast<int>(SyscallNum));
+    }
+  } else {
+    printf("Only syscall exceptions are allowed in appmode!\n"
+           "ExcCode = %d\n.", static_cast<int>(code));
+  }
   run = false;
 }
 

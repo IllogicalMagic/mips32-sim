@@ -54,6 +54,7 @@ sltu = 0b101011
 mfhi = 0b010000
 mflo = 0b010010
 jr = 0b001000
+syscall = 0b001100
 }
 
 spec2_command_name

@@ -16,6 +16,7 @@ public:
     paddr = vaddr;
     return ExcType::None;
   }
+  void write(size_t) {}
 };
 
 }

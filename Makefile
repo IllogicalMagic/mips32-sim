@@ -19,7 +19,7 @@ CXXFLAGS+=-I$(ROOT_DIR)
 CC=$(CXX)
 
 GENDIRS=common decoder execution
-SUBDIRS=asm common decoder execution main
+SUBDIRS=asm common decoder execution support main
 
 export
 

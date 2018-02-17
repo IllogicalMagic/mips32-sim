@@ -1,4 +1,3 @@
-#include <cstring>
 #include <cstdlib>
 
 #include "decoder/decoder.h"
@@ -6,38 +5,14 @@
 #include "execution/mmu_types.h"
 #include "common/types.h"
 #include "common/dec_types.h"
+#include "support/options.h"
+#include "support/error.h"
 
 // For now it is fixed.
 constexpr size_t defaultMemSize = 1024;
 constexpr size_t maxFileSize = 16408;
 
-#define PRINT_ERROR(...) do {                   \
-    fprintf(stderr,  __VA_ARGS__);              \
-    exit(1);                                    \
-  } while (0);
-
 using namespace Simulator;
-
-void parseArgs(int argc, char **argv, char **fIn, size_t &memSize) {
-  for (int i = 1; i < argc; ++i) {
-    // Parse --raw <file>.
-    if (!strcmp("--raw", argv[i])) {
-      ++i;
-      if (i == argc)
-        PRINT_ERROR("File should be specified after --raw option\n");
-      *fIn = argv[i];
-    }
-    else if (!strcmp("--mem-size", argv[i])) {
-      ++i;
-      if (i == argc)
-        PRINT_ERROR("Number should follow --mem-size option\n");
-      memSize = strtoull(argv[i], NULL, 0);
-    }
-    else {
-      PRINT_ERROR("Unknown option %s\n", argv[i]);
-    }
-  }
-}
 
 // Loads raw image.
 // Takes image name and core.

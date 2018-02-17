@@ -6,6 +6,7 @@
 #include <functional>
 #include <cassert>
 #include <cstring>
+#include <memory>
 
 #include "common/types.h"
 #include "common/dec_types.h"
@@ -13,17 +14,14 @@
 #include "decoder/decoder.h"
 #include "sysreg_handler.h"
 #include "exec_types.h"
+#include "mmu.h"
+#include "func.h"
 
 namespace Simulator {
-
-namespace MMU {
-  class TLB;
-}
 
 namespace Core {
 
 using namespace Types;
-using MMU::TLBEntries;
 
 namespace Synonyms {
 
@@ -36,10 +34,12 @@ enum Regs {
 
 }
 
+template<typename MMUType>
 class Core : private Sysregs::SysregHandler {
-  bool run;
+  static constexpr uword_t PCBegin = 0x80000000;
 
   // State variables
+  bool run;
   uword_t PC;
   // For branch delay slot
   uword_t nextPC;
@@ -49,8 +49,9 @@ class Core : private Sysregs::SysregHandler {
   CalcReg HI, LO;
 
   // Memory management
-  ubyte_t *memory;
-  MMU::TLB *tlb;
+  using MMUTy = MMUType;
+  std::unique_ptr<ubyte_t []> memory;
+  std::unique_ptr<MMUTy> mmu;
 
 public:
   // Memory initialization function.
@@ -58,40 +59,15 @@ public:
   // address (for now it is physical);
   // function that initializes given memory location.
   void initMem(MMU::PhysAddr p, const std::function<void (ubyte_t *ptr)> &initFun) {
-    initFun(memory + p);
+    initFun(memory.get() + p);
   }
-
-// Some important typedefs for MMU
-public:
-  typedef decltype(sysregs.EntryLo0) SEntryLo0;
-  typedef decltype(sysregs.EntryLo1) SEntryLo1;
-  typedef decltype(sysregs.EntryHi) SEntryHi;
-  typedef decltype(sysregs.PageMask) SPageMask;
-  typedef decltype(sysregs.Status) SStatus;
 
 private:
   // Insn handlers section
-#include "insn_handlers.h"
+#include "insn_handlers.inc"
 
   typedef void (Core::*insnHandler)(const Insn &);
   std::array<insnHandler, static_cast<size_t>(OpTypes::OpType::OpNum)> insnHandlers;
-
-public:
-  // Exception handling
-  enum class ExcType {
-    TLBRefill,
-    TLBInvalid,
-    TLBMod,
-
-    AddressError,
-
-    Interrupt,
-
-    MachineCheck,
-    BusError,
-    IntegerOverflow,
-    None,
-  };
 
 private:
   enum class ExcCode {
@@ -113,10 +89,58 @@ private:
   void raiseException(ExcType, ExcCode);
 
   // Init helper functions
-  void initSysregs();
-  void initHandlers();
+#include "sysreg_init.inc"
+
 public:
-  Core(size_t memSize);
+  Core(size_t memSize):
+    Sysregs::SysregHandler(registerMap),
+    run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
+    registerMap({0}), mmu(new MMUTy(sysregs)),
+    badVAddr(0), ASID(0) {
+
+#ifdef TLB_DEBUG
+    // magic value to check two TLB records
+    memSize = 16408;
+#endif
+
+    // Memory init
+    memory.reset(new ubyte_t[memSize]);
+
+    // Init stack and frame pointers.
+    // For now we have no way except this to do so.
+    registerMap[Synonyms::SP].uVal = memSize;
+    registerMap[Synonyms::FP].uVal = memSize;
+
+    initSysregs();
+    initHandlers();
+
+#ifdef TLB_DEBUG
+    sysregs.EntryHi.VPN2 = 1;
+    sysregs.EntryLo0.PFN = 2;
+    sysregs.EntryLo0.D = 1;
+    sysregs.EntryLo0.V = 1;
+    sysregs.EntryLo0.G = 1;
+    sysregs.EntryLo1.PFN = 2;
+    sysregs.EntryLo1.D = 1;
+    sysregs.EntryLo1.V = 1;
+    sysregs.EntryLo1.G = 1;
+    sysregs.PageMask.Mask = 0;
+    mmu->write(3);
+
+    sysregs.EntryHi.VPN2 = 2;
+    sysregs.EntryLo0.PFN = 1;
+    sysregs.EntryLo0.D = 1;
+    sysregs.EntryLo0.V = 1;
+    sysregs.EntryLo0.G = 1;
+    sysregs.EntryLo1.PFN = 1;
+    sysregs.EntryLo1.D = 1;
+    sysregs.EntryLo1.V = 1;
+    sysregs.EntryLo1.G = 1;
+    sysregs.PageMask.Mask = 0;
+    mmu->write(15);
+#endif
+  }
+
   int testSysregs() {
     Insn I = {};
     (this->*sysregWriteHandlers[I.rd])(I);
@@ -142,7 +166,16 @@ public:
   }
 
   // Fetch next insn, returning true on success
-  bool fetch(uword_t &w);
+  bool fetch(uword_t &w) {
+    MMU::PhysAddr pAddr;
+    auto excT = mmu->template translate<MMU::AccType::Read>(PC, pAddr);
+    if (excT != ExcType::None) {
+      raiseException(excT, ExcCode::TLBL);
+      return false;
+    }
+    w = *(reinterpret_cast<uword_t *>(memory.get() + pAddr));
+    return true;
+  }
 
   bool isRunning() {
     return run;
@@ -152,8 +185,6 @@ public:
     assert(index < GPRCount);
     return registerMap[index].uVal;
   }
-
-  ~Core();
 }; // class Core
 
 } // namespace Core

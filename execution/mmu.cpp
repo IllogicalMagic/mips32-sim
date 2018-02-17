@@ -17,7 +17,7 @@ bool SWTLB::translate<AccType::Write>(uint8_t ASID, VirtAddr vaddr, PhysAddr &pa
     return false;
   if (translations[i].D)
     return true;
-  lastExc = Core::ExcType::TLBMod;
+  lastExc = ExcType::TLBMod;
   return false;
 }
 

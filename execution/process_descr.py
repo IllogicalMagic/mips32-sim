@@ -10,6 +10,7 @@ out_h = 'sysregs.h'
 out_decl_h = 'sysreg_decl.h'
 out_arr_h = 'sysreg_arr.h'
 out_cxx = 'sysregs.cpp'
+out_init = 'sysreg_init.inc'
 
 # list of tuples (regnum, regsel, regname, regfields)
 # regfields is list of tuples (fname, list of (fbegin, fend, facc, finit))
@@ -59,7 +60,6 @@ for line in fileinput.input(sysreg_descr):
 fileinput.close()
 
 sr = 'Sysregs::SysregHandler::'
-core = 'Core::Core::'
 
 def fill_header():
     global realregnum
@@ -247,7 +247,7 @@ def fill_arrays(s):
 def define_init(s):
     # generate main init function
     indent = '  '
-    s.write('void Core::Core::initSysregs() {\n')
+    s.write('void initSysregs() {\n')
     # init every sysreg
     for _, regsel, regname, _ in sysregs:
         s.write('{0}sysregInit<SR::RegIndex::{1}, {2}>();\n'.format(indent,regname,regsel))
@@ -294,11 +294,15 @@ def fill_source():
 
     s.write('} // namespace Sysregs\n')
 
-    define_init(s)
-
     s.write('} // namespace Simulator\n')
                     
     s.close()
 
+def fill_coreinit():
+    s = open(out_init,'w')
+    define_init(s)
+    s.close()
+    return
 fill_header()
 fill_source()
+fill_coreinit()

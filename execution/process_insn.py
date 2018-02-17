@@ -8,13 +8,12 @@ import io
 insn_table = '../common/tables.txt'
 handlers_cxx = 'handlers.cpp'
 
-out_c = 'insn_handlers.cpp'
-out_h = 'insn_handlers.h'
+out_c = 'insn_handlers.inc'
 
 insns = {}
 debug_line = '  PRINT_DEBUG("Executed {0}\\n");\n'
 handler_stub = ' {{\n  PRINT_DEBUG("Executed {0}\\n");\n  assert(0 && "Unimplemented insn");\n}}\n'
-handler_decl = 'void {0}processInsn{1}(const Types::Insn &i)'
+handler_decl = 'void processInsn{0}(const Types::Insn &i)'
 
 # translation table
 repl_table = [ ('GPR', 'registerMap'),
@@ -28,7 +27,8 @@ repl_table = [ ('GPR', 'registerMap'),
                ('w_t', 'word_t'),
                ('b_t', 'byte_t'),
                ('r_shift', 'arithmetic_rshift'),
-               ('AccType::', 'MMU::AccType::')]
+               ('AccType::', 'MMU::AccType::'),
+               ('memory', 'memory.get()')]
 
 def process_line(line):
     global insns
@@ -98,37 +98,12 @@ def process_handlers():
 
 process_handlers()
 
-# generate declarations of handlers
-def generate_h():
-    out = open(out_h, 'w')
-
-    out.write('#ifndef SIM_MIPS32_GENERATED_HANDLERS_H__\n')
-    out.write('#define SIM_MIPS32_GENERATED_HANDLERS_H__\n\n')
-
-    for insn in insns.iterkeys():
-        out.write(handler_decl.format('', insn.capitalize()))
-        out.write(';\n')
-    out.write('\n')
-
-    out.write('#endif\n\n')
-
-    out.close()
-
 # generate definitions of handlers
 def generate_cxx():
     out = open(out_c, 'w')
 
-    out.write('#include "core.h"\n')
-    out.write('#include "mmu.h"\n')
-    out.write('#include "common/dec_types.h"\n')
-    out.write('#include "func.h"\n')
-    out.write('#include "common/debug.h"\n')
-    out.write('\n')
-    out.write('namespace Simulator {\n\n')
-    out.write('namespace Core {\n\n')
-
     for insn, body in insns.iteritems():
-        out.write(handler_decl.format('Core::', insn.capitalize()))
+        out.write(handler_decl.format(insn.capitalize()))
         out.write(' ')
         for line in body:
             out.write(line)
@@ -136,18 +111,14 @@ def generate_cxx():
     out.write('\n')
 
     indent = '  '
-    out.write('void Core::initHandlers() {\n')
+    out.write('void initHandlers() {\n')
     for num, (insn, _) in enumerate(insns.iteritems()):
         insn = insn.capitalize()
         cast = 'static_cast<size_t>(OpTypes::OpType::{0})'.format(insn)
-        out.write('{0}insnHandlers[{1}] = &Core::processInsn{2};\n'.format(indent, cast, insn))
+        out.write('{0}insnHandlers[{1}] = &Core<MMUTy>::processInsn{2};\n'.format(indent, cast, insn))
     out.write('}\n')
 
-    out.write('} //namespace Core\n\n')
-    out.write('} //namespace Simulator\n\n')
-
     out.close()
-    
-generate_h()
+
 generate_cxx()
 

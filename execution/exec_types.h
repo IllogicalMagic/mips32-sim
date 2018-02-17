@@ -11,6 +11,23 @@ namespace Types {
   using GPReg = CalcReg;
   constexpr size_t GPRCount = 32;
 }
+
+// Exception handling
+enum class ExcType {
+  TLBRefill,
+  TLBInvalid,
+  TLBMod,
+
+  AddressError,
+
+  Interrupt,
+
+  MachineCheck,
+  BusError,
+  IntegerOverflow,
+  None,
+};
+
 }
 
 #endif

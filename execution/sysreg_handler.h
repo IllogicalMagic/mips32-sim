@@ -45,6 +45,10 @@ protected:
   std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
   SysregHandler(std::array<GPReg, GPRCount> &RM):
     registerMap(RM) {}
+
+public:
+  // Some typedefs for MMU
+  using SRTy = decltype(sysregs);
 };
 
 #include "sysreg_decl.h"

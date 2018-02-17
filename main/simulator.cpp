@@ -3,12 +3,13 @@
 
 #include "decoder/decoder.h"
 #include "execution/core.h"
+#include "execution/mmu_types.h"
 #include "common/types.h"
 #include "common/dec_types.h"
 
 // For now it is fixed.
 constexpr size_t defaultMemSize = 1024;
-constexpr size_t maxFileSize = 1024 * 1024;
+constexpr size_t maxFileSize = 16408;
 
 #define PRINT_ERROR(...) do {                   \
     fprintf(stderr,  __VA_ARGS__);              \
@@ -40,7 +41,7 @@ void parseArgs(int argc, char **argv, char **fIn, size_t &memSize) {
 
 // Loads raw image.
 // Takes image name and core.
-void loadRawImage(const char* fIn, Core::Core &core, size_t memSize) {
+void loadRawImage(const char* fIn, Core::Core<MMU::TLB> &core, size_t memSize) {
   FILE *f = fopen(fIn, "rb");
   if (!f)
     PRINT_ERROR("File %s is not found\n", fIn);
@@ -59,7 +60,7 @@ int main(int argc, char **argv) {
   size_t memSize = defaultMemSize;
   parseArgs(argc, argv, &in, memSize);
 
-  Core::Core core(memSize);
+  Core::Core<MMU::TLB> core(memSize);
   loadRawImage(in, core, memSize);
 
   Types::uword_t w;

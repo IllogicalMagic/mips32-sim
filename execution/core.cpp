@@ -11,6 +11,7 @@ namespace Core {
 constexpr uword_t PCBegin = 0x80000000;
 
 Core::Core(size_t memSize):
+  Sysregs::SysregHandler(registerMap),
   run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
   registerMap({0}), badVAddr(0), ASID(0) {
 

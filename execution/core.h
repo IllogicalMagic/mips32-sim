@@ -11,6 +11,8 @@
 #include "common/dec_types.h"
 #include "memory.h"
 #include "decoder/decoder.h"
+#include "sysreg_handler.h"
+#include "exec_types.h"
 
 namespace Simulator {
 
@@ -23,8 +25,6 @@ namespace Core {
 using namespace Types;
 using MMU::TLBEntries;
 
-constexpr size_t GPRCount = 32;
-
 namespace Synonyms {
 
 enum Regs {
@@ -36,16 +36,10 @@ enum Regs {
 
 }
 
-union CalcReg{
-  uword_t uVal;
-  word_t sVal;
-};
-
-class Core {
+class Core : private Sysregs::SysregHandler {
   bool run;
 
   // State variables
-  using GPReg = CalcReg;
   uword_t PC;
   // For branch delay slot
   uword_t nextPC;
@@ -67,11 +61,6 @@ public:
     initFun(memory + p);
   }
 
-private:
-  struct SR {
-#include "sysregs.h"
-  } sysregs;
-
 // Some important typedefs for MMU
 public:
   typedef decltype(sysregs.EntryLo0) SEntryLo0;
@@ -81,29 +70,6 @@ public:
   typedef decltype(sysregs.Status) SStatus;
 
 private:
-  // Sysreg handlers section
-  template<SR::RegIndex I, int Sel>
-  void sysregInit();
-    
-  template<SR::RegIndex I, int Sel>
-  void sysregWrite(const Insn &);
-  template<SR::RegIndex I, int Sel>
-  void sysregRead(const Insn &);
-
-  template<SR::RegIndex I>
-  void sysregWriteProxy(const Insn &) {assert(0 && "Unimplemented sysreg");}
-  template<SR::RegIndex I>
-  void sysregReadProxy(const Insn &) {assert(0 && "Unimplemented sysreg");}
-
-  typedef void (Core::*sysregOp)(const Insn &);
-
-  struct {
-#include "sysreg_arr.h"
-  } sysregHandlers;
-
-  std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregWriteHandlers;
-  std::array<sysregOp, static_cast<size_t>(SR::RegIndex::SysregNum)> sysregReadHandlers;
-
   // Insn handlers section
   template<OpTypes::OpType Op>
   void processInsn(const Insn &) {assert(0 && "Insn is not implemented");}
@@ -191,7 +157,6 @@ public:
   ~Core();
 }; // class Core
 
-#include "sysreg_decl.h"
 #include "insn_handlers.h"
 
 } // namespace Core

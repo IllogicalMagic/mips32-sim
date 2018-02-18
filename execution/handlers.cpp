@@ -339,6 +339,12 @@ beq:
   executeDelaySlotInsn(GPR[rs].u == GPR[rt].u);
 }
 
+bne:
+{
+  nextPC = PC + imm;
+  executeDelaySlotInsn(GPR[rs].u != GPR[rt].u);
+}
+
 j:
 {
   nextPC = ((PC - 4) & ~0x7FFFFFF) + imm;

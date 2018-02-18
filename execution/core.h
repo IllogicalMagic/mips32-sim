@@ -56,6 +56,7 @@ class Core : private Sysregs::SysregHandler {
 
   // Memory management
   using MMUTy = MMUType;
+  size_t memSize;
   std::unique_ptr<ubyte_t []> memory;
   std::unique_ptr<MMUTy> mmu;
 
@@ -107,10 +108,10 @@ private:
 #include "sysreg_init.inc"
 
 public:
-  Core(size_t memSize):
+  Core(size_t memSizeArg):
     Sysregs::SysregHandler(registerMap),
     run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
-    registerMap({0}), mmu(new MMUTy(sysregs)),
+    registerMap({0}), memSize(memSizeArg), mmu(new MMUTy(sysregs)),
     badVAddr(0), ASID(0) {
 
 #ifdef TLB_DEBUG
@@ -154,6 +155,10 @@ public:
     sysregs.PageMask.Mask = 0;
     mmu->write(15);
 #endif
+  }
+
+  size_t getMemSize() {
+    return memSize;
   }
 
   int testSysregs() {

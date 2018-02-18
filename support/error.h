@@ -8,4 +8,8 @@
     exit(1);                                    \
   } while (0);
 
+#define PRINT_WARNING(...) do {                 \
+    fprintf(stderr,  __VA_ARGS__);              \
+  } while (0);
+
 #endif

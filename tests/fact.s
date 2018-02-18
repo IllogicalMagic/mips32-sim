@@ -1,3 +1,7 @@
+        .text
+        .set noreorder
+        .globl main
+        .type main, @function
 main:
         jal fact
         addi $a0, $0, 6

@@ -1,8 +1,12 @@
 #ifndef SIM_MIPS32_LOADER_HPP__
 #define SIM_MIPS32_LOADER_HPP__
 
+#include <cassert>
 #include <cstdlib>
 
+#include <elfio/elfio.hpp>
+
+#include "support/error.h"
 #include "common/types.h"
 
 namespace Loader {
@@ -26,6 +30,38 @@ void loadRawImage(const char* fIn, Core &core, size_t memSize) {
   core.initMem(0, readFile);
 
   fclose(f);
+}
+
+void loadMipsELF(ELFIO::elfio &, const char *fIn);
+void checkMemLimits(ELFIO::elfio &, size_t);
+
+// Load ELF image with name fIn.
+// Supported only little-endian 32-bit executables.
+template<typename Core>
+void loadELFImage(const char* fIn, Core &core) {
+  using namespace Simulator;
+
+  ELFIO::elfio loader;
+  loadMipsELF(loader, fIn);
+  checkMemLimits(loader, core.getMemSize());
+
+  for (const ELFIO::segment *s : loader.segments) {
+    if (s->get_type() == PT_LOAD) {
+      auto copySection = [&s] (Types::ubyte_t *ptr) -> void {
+        size_t vAddr = s->get_virtual_address();
+        size_t fSize = s->get_file_size();
+        size_t mSize = s->get_memory_size();
+        Types::ubyte_t *loc = ptr + vAddr;
+
+        memcpy(loc, s->get_data(), fSize);
+        assert(mSize >= fSize && "Memory size is less than file size in ELF file");
+        memset(loc + fSize, 0, mSize - fSize);
+      };
+      core.initMem(0, copySection);
+    }
+  }
+
+  core.setPC(loader.get_entry());
 }
 
 }

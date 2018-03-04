@@ -302,7 +302,7 @@ lw:
   }
 
   uw_t pAddr;
-  auto excT = tlb->translate<AccType::Read>(vAddr, pAddr);
+  auto excT = mmu->template translate<AccType::Read>(vAddr, pAddr);
   if (excT != ExcType::None) {
     raiseException(excT, ExcCode::TLBL);
     return;
@@ -321,7 +321,7 @@ sw:
   }
 
   uw_t pAddr;
-  auto excT = tlb->translate<AccType::Write>(vAddr, pAddr);
+  auto excT = mmu->template translate<AccType::Write>(vAddr, pAddr);
   if (excT != ExcType::None) {
     auto excC = (excT == ExcType::TLBMod) ? ExcCode::Mod : ExcCode::TLBS;
     raiseException(excT, excC);
@@ -337,6 +337,12 @@ beq:
 {
   nextPC = PC + imm;
   executeDelaySlotInsn(GPR[rs].u == GPR[rt].u);
+}
+
+bne:
+{
+  nextPC = PC + imm;
+  executeDelaySlotInsn(GPR[rs].u != GPR[rt].u);
 }
 
 j:
@@ -357,6 +363,11 @@ jr:
 {
   nextPC = GPR[rs].u;
   executeDelaySlotInsn(true);
+}
+
+syscall:
+{
+  raiseException(ExcType::Syscall, ExcCode::Sys);
 }
 
 halt:

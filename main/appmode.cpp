@@ -3,7 +3,7 @@
 #include "decoder/decoder.h"
 #include "execution/core.h"
 #include "execution/mmu_types.h"
-#include "execution/tlb.h"
+#include "execution/fixed_mapping.h"
 #include "common/types.h"
 #include "common/dec_types.h"
 #include "support/options.h"
@@ -11,7 +11,7 @@
 #include "support/loader.h"
 
 // For now it is fixed.
-constexpr size_t defaultMemSize = 1024;
+constexpr size_t defaultMemSize = ((size_t) 1024) * 1024 * 100;
 
 using namespace Simulator;
 
@@ -20,8 +20,9 @@ int main(int argc, char **argv) {
   size_t memSize = defaultMemSize;
   parseArgs(argc, argv, &in, memSize);
 
-  Core::Core<MMU::TLB> core(memSize);
-  Loader::loadRawImage(in, core, memSize);
+  Core::Core<MMU::FixedMapping> core(memSize);
+  assert(in && "No filename is given");
+  Loader::loadELFImage(in, core);
 
   Types::uword_t w;
   Types::Insn i;

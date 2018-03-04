@@ -10,6 +10,7 @@ out_h = 'sysregs.h'
 out_decl_h = 'sysreg_decl.h'
 out_arr_h = 'sysreg_arr.h'
 out_cxx = 'sysregs.cpp'
+out_init = 'sysreg_init.inc'
 
 # list of tuples (regnum, regsel, regname, regfields)
 # regfields is list of tuples (fname, list of (fbegin, fend, facc, finit))
@@ -58,6 +59,8 @@ for line in fileinput.input(sysreg_descr):
         parse_reg(line.strip())
 fileinput.close()
 
+sr = 'Sysregs::SysregHandler::'
+
 def fill_header():
     global realregnum
     global regnum
@@ -98,11 +101,11 @@ def fill_header():
     h.write('#define SIM_MIPS32_GENERATED_SYSREG_DECL_HEADER__\n\n')
 
     for _, regsel, regname, _ in sysregs:
-        h.write('template<>\nvoid Core::sysregInit<Core::SR::RegIndex::{0}, {1}>();\n'.format(regname, regsel))
+        h.write('template<>\nvoid {2}sysregInit<{2}SR::RegIndex::{0}, {1}>();\n'.format(regname, regsel, sr))
     for _, regsel, regname, _ in sysregs:
-        h.write('template<>\nvoid Core::sysregWrite<Core::SR::RegIndex::{0}, {1}>(const Insn &);\n'.format(regname, regsel))
+        h.write('template<>\nvoid {2}sysregWrite<{2}SR::RegIndex::{0}, {1}>(const Insn &);\n'.format(regname, regsel, sr))
     for _, regsel, regname, _ in sysregs:
-        h.write('template<>\nvoid Core::sysregRead<Core::SR::RegIndex::{0}, {1}>(const Insn &);\n'.format(regname, regsel))
+        h.write('template<>\nvoid {2}sysregRead<{2}SR::RegIndex::{0}, {1}>(const Insn &);\n'.format(regname, regsel, sr))
 
 
     h.write('\n#endif\n')
@@ -114,7 +117,7 @@ def fill_init(s):
 
     # generate init function for every sysreg
     for regno, regsel, regname, regfields in sysregs:
-        s.write('template<>\nvoid Core::sysregInit<Core::SR::RegIndex::{0}, {1}>() {{\n'.format(regname, regsel))
+        s.write('template<>\nvoid {0}sysregInit<{0}SR::RegIndex::{1}, {2}>() {{\n'.format(sr, regname, regsel))
         for fname, fprops in regfields:
             if fname == '0' or fname == 'R':
                 continue
@@ -144,35 +147,10 @@ def fill_init(s):
 
         s.write('}\n\n')
 
-    # generate main init function
-    s.write('void Core::initSysregs() {\n')
-    # init every sysreg
-    for _, regsel, regname, _ in sysregs:
-        s.write('{0}sysregInit<SR::RegIndex::{1}, {2}>();\n'.format(indent,regname,regsel))
-    s.write('\n');
-
-    # init proxy functions for sysreg processing
-    for i in range(0,regnum):
-        s.write('{0}sysregWriteHandlers[{1}] = &Core::sysregWriteProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i))
-    s.write('\n')
-    for i in range(0,regnum):
-        s.write('{0}sysregReadHandlers[{1}] = &Core::sysregReadProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i))
-    s.write('\n')
-
-    # init sysreg handler pointers
-    for regno, regsel, regname, _ in sysregs:
-        s.write('{0}sysregHandlers.regWrite{1}[{2}] = &Core::sysregWrite<SR::RegIndex::{3}, {2}>;\n'.format(indent, regno, regsel, regname))
-    s.write('\n')
-
-    for regno, regsel, regname, _ in sysregs:
-        s.write('{0}sysregHandlers.regRead{1}[{2}] = &Core::sysregRead<SR::RegIndex::{3}, {2}>;\n'.format(indent, regno, regsel, regname))
-
-    s.write('}\n\n')
-
 # generate sysreg write handlers
 def fill_write(s):
     for regnum, regsel, regname, regfields in sysregs:
-        s.write('template<>\nvoid Core::sysregWrite<Core::SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel))
+        s.write('template<>\nvoid {2}sysregWrite<{2}SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel, sr))
 
         indent = '  '
         curpos = 32
@@ -191,7 +169,7 @@ def fill_write(s):
 # generate sysreg read handlers
 def fill_read(s):
     for regnum, regsel, regname, regfields in sysregs:
-        s.write('template<>\nvoid Core::sysregRead<Core::SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel))
+        s.write('template<>\nvoid {2}sysregRead<{2}SR::RegIndex::{0}, {1}>(const Insn &i) {{\n'.format(regname, regsel, sr))
 
         indent = '  '
         s.write('{0}uword_t val = 0;\n'.format(indent))
@@ -251,7 +229,7 @@ def fill_arrays(s):
     for elem in gen_arr:
         if len(elem) > 0:
             regno, regsel, regname = elem[0]
-            s.write('template<>\nvoid Core::sysregWriteProxy<Core::SR::RegIndex::{0}>(const Insn &i) {{\n'.format(regname))
+            s.write('template<>\nvoid {0}sysregWriteProxy<{0}SR::RegIndex::{1}>(const Insn &i) {{\n'.format(sr, regname))
             s.write('{0}assert(i.imm < {1} && "Bad sel field");\n'.format(indent, len(elem)))
             s.write('{0}(this->*sysregHandlers.regWrite{1}[i.imm])(i);\n'.format(indent,regno))
             s.write('}\n\n')
@@ -259,11 +237,39 @@ def fill_arrays(s):
     for elem in gen_arr:
         if len(elem) > 0:
             regno, regsel, regname = elem[0]
-            s.write('template<>\nvoid Core::sysregReadProxy<Core::SR::RegIndex::{0}>(const Insn &i) {{\n'.format(regname))
+            s.write('template<>\nvoid {0}sysregReadProxy<{0}SR::RegIndex::{1}>(const Insn &i) {{\n'.format(sr, regname))
             s.write('{0}assert(i.imm < {1} && "Bad sel field");\n'.format(indent, len(elem)))
             s.write('{0}(this->*sysregHandlers.regRead{1}[i.imm])(i);\n'.format(indent,regno))
             s.write('}\n\n')
 
+    return
+
+def define_init(s):
+    # generate main init function
+    indent = '  '
+    s.write('void initSysregs() {\n')
+    # init every sysreg
+    for _, regsel, regname, _ in sysregs:
+        s.write('{0}sysregInit<SR::RegIndex::{1}, {2}>();\n'.format(indent,regname,regsel))
+    s.write('\n');
+
+    # init proxy functions for sysreg processing
+    for i in range(0,regnum):
+        s.write('{0}sysregWriteHandlers[{1}] = &{2}sysregWriteProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i,sr))
+    s.write('\n')
+    for i in range(0,regnum):
+        s.write('{0}sysregReadHandlers[{1}] = &{2}sysregReadProxy<static_cast<SR::RegIndex>({1})>;\n'.format(indent,i,sr))
+    s.write('\n')
+
+    # init sysreg handler pointers
+    for regno, regsel, regname, _ in sysregs:
+        s.write('{0}sysregHandlers.regWrite{1}[{2}] = &{4}sysregWrite<SR::RegIndex::{3}, {2}>;\n'.format(indent, regno, regsel, regname, sr))
+    s.write('\n')
+
+    for regno, regsel, regname, _ in sysregs:
+        s.write('{0}sysregHandlers.regRead{1}[{2}] = &{4}sysregRead<SR::RegIndex::{3}, {2}>;\n'.format(indent, regno, regsel, regname, sr))
+
+    s.write('}\n\n')
     return
 
 def fill_source():
@@ -271,12 +277,14 @@ def fill_source():
 
     s.write('#include <cassert>\n')
     s.write('\n')
+    s.write('#include "sysreg_handler.h"\n')
     s.write('#include "core.h"\n')
     s.write('#include "common/types.h"\n')
     s.write('\n')
     
     s.write('namespace Simulator {\n\n')
-    s.write('namespace Core {\n\n')
+    s.write('namespace Sysregs {\n\n')
+    s.write('using MMU::TLBEntries;')
     s.write('using namespace Types;\n\n')
 
     fill_write(s)
@@ -284,10 +292,17 @@ def fill_source():
     fill_arrays(s)
     fill_init(s)
 
-    s.write('} // namespace Core\n')
+    s.write('} // namespace Sysregs\n')
+
     s.write('} // namespace Simulator\n')
                     
     s.close()
 
+def fill_coreinit():
+    s = open(out_init,'w')
+    define_init(s)
+    s.close()
+    return
 fill_header()
 fill_source()
+fill_coreinit()

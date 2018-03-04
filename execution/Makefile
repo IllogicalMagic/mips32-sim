@@ -1,10 +1,10 @@
-GENERATED=sysregs.h sysregs.cpp sysreg_decl.h sysreg_arr.h insn_handlers.h insn_handlers.cpp
+GENERATED=sysregs.h sysregs.cpp sysreg_decl.h sysreg_arr.h insn_handlers.inc sysreg_init.inc
 
-OBJ=core.o mmu.o sysregs.o insn_handlers.o
+OBJ=core.o tlb.o sysregs.o
 
 all: $(OBJ)
 
-test: test.o core.o sysregs.o insn_handlers.o mmu.o
+test: test.o $(OBJ)
 
 generate: process_descr.py sysregs.txt process_insn.py handlers.cpp
 	./process_descr.py

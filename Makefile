@@ -19,7 +19,7 @@ CXXFLAGS+=-I$(ROOT_DIR)
 CC=$(CXX)
 
 GENDIRS=common decoder execution
-SUBDIRS=asm common decoder execution main
+SUBDIRS=asm common decoder execution support main lib
 
 export
 
@@ -40,7 +40,7 @@ endef
 
 
 all: generate build
-	cp main/simulator asm/asm.py .
+	cp main/simulator main/appmode asm/asm.py .
 
 generate:
 	$(foreach DIR, $(GENDIRS), $(GEN))
@@ -49,6 +49,6 @@ build:
 	$(foreach DIR, $(SUBDIRS), $(PAT))
 
 clean:
-	rm -rf *~ *.o simulator asm.py
+	rm -rf *~ *.o simulator appmode asm.py
 	$(foreach DIR, $(SUBDIRS), $(CLEAN))
 

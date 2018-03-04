@@ -3,8 +3,9 @@
 
 #include "common/types.h"
 #include "common/debug.h"
-#include "core.h"
+#include "sysreg_handler.h"
 #include "memory.h"
+#include "exec_types.h"
 
 namespace Simulator {
 
@@ -12,13 +13,11 @@ namespace MMU {
 
 using namespace Types;
 
-using Core::Core;
-
 static constexpr uword_t pageMask = 0xFFF;
   // TLB cache with 4kb page size
 class SWTLB {
   uint64_t valid;
-  Core::ExcType lastExc;
+  ExcType lastExc;
 
   struct {
     VirtAddr vaddr;
@@ -42,7 +41,7 @@ class SWTLB {
     bool result = (valid & mask) && ((vaddr & (~pageMask)) == translations[i].vaddr)
       && ((translations[i].G) || (ASID == translations[i].ASID));
     if (!result) {
-      lastExc = Core::ExcType::None;
+      lastExc = ExcType::None;
       return false;
     }
 
@@ -63,19 +62,28 @@ public:
 
   template<AccType AT>
   bool translate(uint8_t ASID, VirtAddr vaddr, PhysAddr &paddr);
-  Core::ExcType getLastExc() {return lastExc;}
+  ExcType getLastExc() {return lastExc;}
 };
 
 class TLB {
 public:
   SWTLB swtlb;
 
-  // Connect MMU to core
-  Core::SEntryLo0 &EntryLo0;
-  Core::SEntryLo1 &EntryLo1;
-  Core::SEntryHi &EntryHi;
-  Core::SPageMask &PageMask;
-  const Core::SStatus &Status;
+  // Connect MMU to core {{
+  // Some typedefs to extract sysreg types from core.
+  using SRTy = Sysregs::SysregHandler::SRTy;
+  using EntryLo0Ty = decltype(std::declval<SRTy>().EntryLo0);
+  using EntryLo1Ty = decltype(std::declval<SRTy>().EntryLo1);
+  using EntryHiTy = decltype(std::declval<SRTy>().EntryHi);
+  using PageMaskTy = decltype(std::declval<SRTy>().PageMask);
+  using StatusTy = decltype(std::declval<SRTy>().Status);
+
+  EntryLo0Ty &EntryLo0;
+  EntryLo1Ty &EntryLo1;
+  EntryHiTy &EntryHi;
+  PageMaskTy &PageMask;
+  const StatusTy &Status;
+  // }}
 
   struct TLBEntry {
     struct {
@@ -99,28 +107,28 @@ public:
   bool translateAdditional(bool Dirty) {return true;}
 
   template<AccType AT>
-  Core::ExcType translateInternal(VirtAddr vaddr, PhysAddr &paddr) {
+  ExcType translateInternal(VirtAddr vaddr, PhysAddr &paddr) {
     // Check address bounds
     bool UserMode = Status.UM & ~Status.EXL & ~Status.ERL;
     if (vaddr & 0x80000000) {
       if (UserMode)
-        return Core::ExcType::AddressError;
+        return ExcType::AddressError;
 
       // kseg0/1
       if (vaddr < 0xC0000000) {
         paddr = vaddr - 0x80000000;
-        return Core::ExcType::None;
+        return ExcType::None;
       }
     }
 
     // Try to find in cache.
     // Success.
     if (swtlb.translate<AT>(EntryHi.ASID, vaddr, paddr))
-      return Core::ExcType::None;
+      return ExcType::None;
 
     // Success with exception (TLBMod).
     auto swtlbStatus = swtlb.getLastExc();
-    if (swtlbStatus != Core::ExcType::None)
+    if (swtlbStatus != ExcType::None)
       return swtlbStatus;
 
     // Go through all entries.
@@ -136,10 +144,10 @@ public:
           const auto &data = e.data[(vaddr & (1 << 12)) != 0];
           // Handle valid bit.
           if (!data.V)
-            return Core::ExcType::TLBInvalid;
+            return ExcType::TLBInvalid;
           // Handle dirty bit for writes.
           if (!translateAdditional<AT>(data.D))
-            return Core::ExcType::TLBMod;
+            return ExcType::TLBMod;
 
           // Get address.
           constexpr size_t offsetlen = 12;
@@ -147,20 +155,20 @@ public:
 
           // Fill cache with new record.
           swtlb.insert(e.tag.G, e.tag.ASID, data.D, vaddr, paddr);
-          return Core::ExcType::None;
+          return ExcType::None;
         }
       validIter <<= 1;
     }
 
     // Entry not found.
-    return Core::ExcType::TLBRefill;
+    return ExcType::TLBRefill;
   }
 public:
   template<AccType AT>
-  Core::ExcType translate(VirtAddr vaddr, PhysAddr &paddr) {
+  ExcType translate(VirtAddr vaddr, PhysAddr &paddr) {
     auto ret = translateInternal<AT>(vaddr, paddr);
     PRINT_DEBUG("Translated: VA %x -> PA %x %s\n", vaddr, paddr,
-                ret == Core::ExcType::None ? "" : "exception");
+                ret == ExcType::None ? "" : "exception");
     return ret;
   }
   bool write(size_t index) {
@@ -217,10 +225,9 @@ public:
     EntryLo1.G = e.tag.G;
   }
 
-  TLB(Core::SEntryLo0 &ELo0, Core::SEntryLo1 &ELo1, Core::SEntryHi &EHi,
-      Core::SPageMask &PM, Core::SStatus &S):
-    EntryLo0(ELo0), EntryLo1(ELo1), EntryHi(EHi), PageMask(PM), Status(S), valid(0) {}
-
+  TLB(SRTy &S):
+    EntryLo0(S.EntryLo0), EntryLo1(S.EntryLo1), EntryHi(S.EntryHi),
+    PageMask(S.PageMask), Status(S.Status), valid(0) {}
 };
 
 } // namespace MMU

@@ -37,9 +37,10 @@ namespace Decoder {
   constexpr bit_range func_range = {0, 6};
   
   constexpr std::array<Commands::spec_command_name, 4> shift_icmds = {Commands::Sll, Commands::Sra, Commands::Srl, Commands::Rotr};
-  constexpr std::array<Commands::command_name, 8> signed_ops = {
+  constexpr std::array<Commands::command_name, 9> signed_ops = {
     Commands::Addi, Commands::Andi, Commands::Ori, Commands::Xori,
-    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti };
+    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti,
+    Commands::Addiu };
 
   Insn decode_word(word_t word);
   uword_t get_bits(bit_range range, word_t from);

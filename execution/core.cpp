@@ -1,5 +1,6 @@
 #include "core.h"
-#include "mmu.h"
+#include "tlb.h"
+#include "fixed_mapping.h"
 
 #define EXTRACT_BITS(x, end, beg)                           \
   (((x) & ((~static_cast<decltype(x)>(0)) << (end - beg))) >> beg)
@@ -8,60 +9,9 @@ namespace Simulator {
 
 namespace Core {
 
-constexpr uword_t PCBegin = 0x80000000;
-
-Core::Core(size_t memSize):
-  run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
-  registerMap({0}), badVAddr(0), ASID(0) {
-
-#ifdef TLB_DEBUG
-  // magic value to check two TLB records
-  memSize = 16408;
-#endif
-
-  // Memory init
-  tlb = new MMU::TLB(sysregs.EntryLo0, sysregs.EntryLo1, sysregs.EntryHi,
-                     sysregs.PageMask, sysregs.Status);
-  memory = new ubyte_t[memSize];
-
-  // Init stack and frame pointers.
-  // For now we have no way except this to do so.
-  registerMap[Synonyms::SP].uVal = memSize;
-  registerMap[Synonyms::FP].uVal = memSize;
-
-  initSysregs();
-  initHandlers();
-
-#ifdef TLB_DEBUG
-  sysregs.EntryHi.VPN2 = 1;
-  sysregs.EntryLo0.PFN = 2;
-  sysregs.EntryLo0.D = 1;
-  sysregs.EntryLo0.V = 1;
-  sysregs.EntryLo0.G = 1;
-  sysregs.EntryLo1.PFN = 2;
-  sysregs.EntryLo1.D = 1;
-  sysregs.EntryLo1.V = 1;
-  sysregs.EntryLo1.G = 1;
-  sysregs.PageMask.Mask = 0;
-  tlb->write(3);
-
-  sysregs.EntryHi.VPN2 = 2;
-  sysregs.EntryLo0.PFN = 1;
-  sysregs.EntryLo0.D = 1;
-  sysregs.EntryLo0.V = 1;
-  sysregs.EntryLo0.G = 1;
-  sysregs.EntryLo1.PFN = 1;
-  sysregs.EntryLo1.D = 1;
-  sysregs.EntryLo1.V = 1;
-  sysregs.EntryLo1.G = 1;
-  sysregs.PageMask.Mask = 0;
-  tlb->write(15);
-
-#endif
-}
-
 // Algorithm from MIPS32 4K Processor Core Family Software User's Manual
-void Core::raiseException(ExcType ex, ExcCode code) {
+template<>
+void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
   // General exception handling
   uword_t vectorOffset;
   if (sysregs.Status.EXL == 0) {
@@ -111,23 +61,23 @@ void Core::raiseException(ExcType ex, ExcCode code) {
   }
 }
 
-bool Core::fetch(uword_t &w) {
-  MMU::PhysAddr pAddr;
-  auto excT = tlb->translate<MMU::AccType::Read>(PC, pAddr);
-  if (excT != ExcType::None) {
-    raiseException(excT, ExcCode::TLBL);
-    return false;
+template<>
+void Core<MMU::FixedMapping>::raiseException(ExcType ex, ExcCode code) {
+  if (ex == ExcType::Syscall) {
+    Syscalls SyscallNum = static_cast<Syscalls>(registerMap[Synonyms::V0].sVal);
+    if (SyscallNum == Syscalls::Exit) {
+      printf("Program exited with exit code %d.\n", registerMap[Synonyms::A0].sVal);
+    }
+    else {
+      printf("Unknown syscall number %d.\n", static_cast<int>(SyscallNum));
+    }
+  } else {
+    printf("Only syscall exceptions are allowed in appmode!\n"
+           "ExcCode = %d\n.", static_cast<int>(code));
   }
-  w = *(reinterpret_cast<uword_t *>(memory + pAddr));
-  return true;
+  run = false;
 }
 
-
-Core::~Core() {
-  delete tlb;
-  delete[] memory;
-}
-  
 } // namespace Core
 
 } // namespace Simulator

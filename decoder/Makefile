@@ -1,5 +1,3 @@
-CC=g++
-CFLAGS?=-std=c++14 -Wall
 GEN_LIST=dec_cmds.h map_match.h matchers.hpp
 OBJ=decoder.o
 

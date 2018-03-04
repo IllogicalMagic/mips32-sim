@@ -69,28 +69,6 @@ class DecoderTypesGen:
 		self._map_gen.finalize()
 		self._match_gen.finalize()
 
-
-'''
-template <>
-OpTypes::OpType match_op(Commands::command_name entry) {
-  return command_name_matcher.find(entry)->second;	
-}
-
-template <>
-OpTypes::OpType match_op(Commands::spec_command_name entry) {
-  return spec_command_name_matcher.find(entry)->second;
-}	
-	
-template <>
-OpTypes::OpType match_op(Commands::spec2_command_name entry) {
-  return spec2_command_name_matcher.find(entry)->second;	
-}
-
-template <>
-OpTypes::OpType match_op(Commands::cop0_command_name entry) {
-  return cop0_command_name_matcher.find(entry)->second;
-}'''
-
 if __name__ == "__main__":
 	enums_fname = 'dec_cmds'
 	map_fname = 'map_match'

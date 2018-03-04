@@ -178,7 +178,7 @@ def gen_printer(insn):
     before = gen_full_info(defs, uses, True)
     after = gen_full_info(defs, uses, False)
     if after != '':
-        before = before + 'PRINT_DEBUG("; ");\n'
+        before = before + '  PRINT_DEBUG("; ");\n'
     after = after + '  PRINT_DEBUG("\\n");\n'
     res = insns[insn]
     # insert after "Executed ..."
@@ -189,6 +189,19 @@ def gen_printer(insn):
     else:
         res.insert(-1, after)
     insns[insn] = res
+
+def gen_exception_tracer(insn):
+    handler = insns[insn]
+    for i, line in enumerate(handler):
+        if 'raiseException' in line:
+            args = re.search('\(.*\)', line).group()
+            args = args.strip('()')
+            print args
+            exc_ty, exc_code = args.split(',')
+            res = '  PRINT_DEBUG("Exception {0} occured, code = %d.\\n", static_cast<int>({1}));\n'
+            res = res.format(exc_ty, exc_code)
+            print res
+            handler[i] = res + line
 
 def process_handlers():
     h = open(handlers_cxx, 'r')
@@ -203,6 +216,7 @@ def process_handlers():
                 if insn not in insns:
                     print 'Unknown insn {0}'.format(insn)
                 read_handler(h, insn)
+                gen_exception_tracer(insn)
                 gen_printer(insn)
                 process_def(insn)
 

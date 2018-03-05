@@ -149,23 +149,26 @@ def get_debug_string(prefix, fmts, args):
 def gen_full_info(defs, uses, before):
     args = []
     fmts = []
+    val_fmt = '(0x%08x,%u)'
     for d in defs:
         if before and 'memory' in d:
             continue
         fmt, arg = extract_index(d)
-        fmts.append(fmt + '(0x%08x)')
+        fmts.append(fmt + val_fmt)
         if arg:
             args.append(arg)
-        args.append(convert_ref_to_value(d))
+        arg = convert_ref_to_value(d)
+        args.extend((arg, arg))
     if before:
         for u in uses:
             if 'memory' in u:
                 continue
             fmt, arg = extract_index(u)
-            fmts.append(fmt + '(0x%08x)')
+            fmts.append(fmt + val_fmt)
             if arg:
                 args.append(arg)
-            args.append(convert_ref_to_value(u))
+            arg = convert_ref_to_value(u)
+            args.extend((arg, arg))
 
     prefix = ''
     if not before:

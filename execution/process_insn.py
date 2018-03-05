@@ -217,8 +217,9 @@ def gen_exception_tracer(insn):
             args = re.search('\(.*\)', line).group()
             args = args.strip('()')
             exc_ty, exc_code = args.split(',')
-            res = '  PRINT_DEBUG("Exception {0} occured, code = %d.\\n", static_cast<int>({1}));\n'
-            res = res.format(exc_ty, exc_code)
+            ident = re.match('\s*', line).group()
+            res = '{2}PRINT_DEBUG("Exception {0} occured, code = %d.\\n", static_cast<int>({1}));\n'
+            res = res.format(exc_ty, exc_code, ident)
             handler[i] = res + line
 
 def process_handlers():

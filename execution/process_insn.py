@@ -33,7 +33,8 @@ repl_table = [ ('GPR', 'registerMap'),
 defuse_table = [ 'GPR\[r.\]',
                  'HI',
                  'LO',
-                 'imm']
+                 'imm',
+                 '(?<=\().*memory.*(?=\))']
 
 def process_line(line):
     global insns
@@ -118,6 +119,21 @@ def extract_index(val):
         return ('HI', None)
     if 'LO' in val:
         return ('LO', None)
+    if 'memory' in val:
+        addr = re.search('(?<=\+).*', val)
+        if addr == None:
+            print 'Memory access without any addressing! {0}'.format(val)
+            raise Exception
+        addr = addr.group()
+        return ('[0x%08x]=', addr)
+
+# get value expression for reference
+# now only memory handled in special way
+def convert_ref_to_value(ref):
+    if not 'memory' in ref:
+        return ref
+
+    return '*reinterpret_cast<uw_t *>({0})'.format(ref)
 
 # return PRINT_DEBUG with format string and arguments
 def get_debug_string(prefix, fmts, args):
@@ -134,18 +150,22 @@ def gen_full_info(defs, uses, before):
     args = []
     fmts = []
     for d in defs:
+        if before and 'memory' in d:
+            continue
         fmt, arg = extract_index(d)
         fmts.append(fmt + '(0x%08x)')
         if arg:
             args.append(arg)
-        args.append(d)
+        args.append(convert_ref_to_value(d))
     if before:
         for u in uses:
+            if 'memory' in u:
+                continue
             fmt, arg = extract_index(u)
             fmts.append(fmt + '(0x%08x)')
             if arg:
                 args.append(arg)
-            args.append(u)
+            args.append(convert_ref_to_value(u))
 
     prefix = ''
     if not before:
@@ -196,11 +216,9 @@ def gen_exception_tracer(insn):
         if 'raiseException' in line:
             args = re.search('\(.*\)', line).group()
             args = args.strip('()')
-            print args
             exc_ty, exc_code = args.split(',')
             res = '  PRINT_DEBUG("Exception {0} occured, code = %d.\\n", static_cast<int>({1}));\n'
             res = res.format(exc_ty, exc_code)
-            print res
             handler[i] = res + line
 
 def process_handlers():

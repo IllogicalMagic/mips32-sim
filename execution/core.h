@@ -45,14 +45,14 @@ class Core : private Sysregs::SysregHandler {
   static constexpr uword_t PCBegin = 0x80000000;
 
   // State variables
-  bool run;
-  uword_t PC;
+  bool run = true;
+  uword_t PC = PCBegin;
   // For branch delay slot
-  uword_t nextPC;
-  bool isInDelaySlot;
+  uword_t nextPC = 0;
+  bool isInDelaySlot = false;
 
   std::array<GPReg, GPRCount> registerMap;
-  CalcReg HI, LO;
+  CalcReg HI = {0}, LO = {0};
 
   // Memory management
   using MMUTy = MMUType;
@@ -100,8 +100,8 @@ private:
   };
 
   // For address insn
-  MMU::VirtAddr badVAddr;
-  uword_t ASID;
+  MMU::VirtAddr badVAddr = 0;
+  uword_t ASID = 0;
   void raiseException(ExcType, ExcCode);
 
   // Init helper functions
@@ -110,10 +110,7 @@ private:
 public:
   Core(size_t memSizeArg):
     Sysregs::SysregHandler(registerMap),
-    run(true), PC(PCBegin), nextPC(0), isInDelaySlot(false),
-    registerMap({0}), memSize(memSizeArg), mmu(new MMUTy(sysregs)),
-    badVAddr(0), ASID(0) {
-
+    registerMap({0}), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
 #ifdef TLB_DEBUG
     // magic value to check two TLB records
     memSize = 16408;

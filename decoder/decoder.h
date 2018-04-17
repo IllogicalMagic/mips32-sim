@@ -32,15 +32,15 @@ namespace Decoder {
 
   constexpr bit_range op_range = {26, WORD_LEN};
   constexpr bit_range address_range = {0, 26};
-  constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
+  constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};   
   constexpr bit_range shift_range = {6, 11};
   constexpr bit_range func_range = {0, 6};
-  
+  //shift operations with fixed amount of bits (provided as immediate)
   constexpr std::array<Commands::spec_command_name, 4> shift_icmds = {Commands::Sll, Commands::Sra, Commands::Srl, Commands::Rotr};
-  constexpr std::array<Commands::command_name, 9> signed_ops = {
-    Commands::Addi, Commands::Andi, Commands::Ori, Commands::Xori,
-    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti,
-    Commands::Addiu };
+  constexpr std::array<Commands::command_name, 6> sign_ext_ops = {
+    Commands::Addi, Commands::Addiu,
+    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti
+  };
 
   Insn decode_word(word_t word);
   uword_t get_bits(bit_range range, word_t from);

@@ -10,6 +10,9 @@ b will be translated to beq
 nop will be translated to sll
 */
 
+//Matches ops to internal op types parsed from op_match.txt
+//to Execution op type Types::OpTypes::OpType which declaration is generated to common/opnum.h
+
 namespace Simulator { namespace Decoder {
 
 inline unsigned char get_bit(int n, word_t from) {
@@ -74,21 +77,21 @@ Insn decode_word(word_t word) {
   }
   else {
     parsed.op = match_op(static_cast<command_name>(opcode));
-    auto ops_arr_end = signed_ops.end();
+    auto ops_arr_end = sign_ext_ops.end();
 	
-    if (std::find (signed_ops.begin(), ops_arr_end, opcode) != ops_arr_end) {
-      //operation is signed
+    if (std::find (sign_ext_ops.begin(), ops_arr_end, opcode) != ops_arr_end) {
+      //imm is sign extended
       hword_t imm = 0xffff & word;
       parsed.imm = imm;
-	  }
-	  else if (opcode == Beq || opcode == Bne) {
+	}
+	else if (opcode == Beq || opcode == Bne) {
       hword_t offset = (0xffff & word);
       parsed.imm = static_cast<word_t>(offset) << 2;
-	  }
-    else {//unsigned op
+	}
+    else {//imm is unsign extended
       uhword_t imm = 0xffff & word;
       parsed.imm = imm;
-	  }
+	}
     	
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);  

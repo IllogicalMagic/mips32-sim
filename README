@@ -1,0 +1,29 @@
+make clean
+
+To link libmips:
+CROSS_COMPILER=<cross-compiler-folder>/mips-elf-gcc
+CROSS_TOOLCHAIN=<cross-compiler-folder> make
+CROSS_PREFIX=mipsel-elf-
+
+Then,
+<define variables> make
+
+Depends on elfio library, library folder 'elfio' should be copied to repository root
+OR: 
+    use this before make: ADDOPTS=-I$PATH_TO_ELFIO
+
+To compile source code into elf, use 
+    SIM=<repo-folder>
+    <cross-compiler-folder>/mips-elf-gcc -L$SIM/lib -lmips -EL
+Assembler file:
+    <cross-compiler-folder>/mips-elf-gcc <source.c> -S -o <result.s>
+    
+There are two modes (and respective files in main/):
+    appmode --raw <elf-file>
+    To run applications (elf-files)
+    
+    simulator --raw <binary>
+    With all exceptions/tlb features
+    To get binary, one need:
+        ./asm.py <asm-file.s> <binary>
+

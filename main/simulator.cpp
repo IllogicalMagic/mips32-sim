@@ -10,18 +10,16 @@
 #include "support/error.h"
 #include "support/loader.h"
 
-// For now it is fixed.
-constexpr size_t defaultMemSize = 1024;
-
 using namespace Simulator;
 
 int main(int argc, char **argv) {
-  char *in = nullptr;
-  size_t memSize = defaultMemSize;
-  parseArgs(argc, argv, &in, memSize);
+
+  auto args = FullSimArguments(argc,argv);
+  size_t memSize = args.memSize;
+  auto& in = args.filename;
 
   Core::Core<MMU::TLB> core(memSize);
-  Loader::loadRawImage(in, core, memSize);
+  Loader::loadRawImage(in.c_str(), core, memSize);
 
   Types::uword_t w;
   Types::Insn i;

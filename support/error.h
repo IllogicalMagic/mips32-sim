@@ -3,6 +3,8 @@
 
 #include <cstdio>
 
+//TODO: encapsulate prints into normal class Logger (or use a library)
+
 #define PRINT_ERROR(...) do {                   \
     fprintf(stderr,  __VA_ARGS__);              \
     exit(1);                                    \

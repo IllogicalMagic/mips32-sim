@@ -1,9 +1,10 @@
 make clean
 
-To link libmips:
+To link libmips and make all:
 CROSS_COMPILER=<cross-compiler-folder>/mips-elf-gcc
-CROSS_TOOLCHAIN=<cross-compiler-folder> make
+CROSS_TOOLCHAIN=<cross-compiler-folder>
 CROSS_PREFIX=mipsel-elf-
+SIM=<repo-folder>
 
 Then,
 <define variables> make
@@ -13,7 +14,6 @@ OR:
     use this before make: ADDOPTS=-I$PATH_TO_ELFIO
 
 To compile source code into elf, use 
-    SIM=<repo-folder>
     <cross-compiler-folder>/mips-elf-gcc -L$SIM/lib -lmips -EL
 Assembler file:
     <cross-compiler-folder>/mips-elf-gcc <source.c> -S -o <result.s>

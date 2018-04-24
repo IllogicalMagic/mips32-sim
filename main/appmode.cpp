@@ -10,19 +10,15 @@
 #include "support/error.h"
 #include "support/loader.h"
 
-// For now it is fixed.
-constexpr size_t defaultMemSize = ((size_t) 1024) * 1024 * 100;
-
 using namespace Simulator;
 
 int main(int argc, char **argv) {
-  char *in = nullptr;
-  size_t memSize = defaultMemSize;
-  parseArgs(argc, argv, &in, memSize);
+  auto args = AppmodeArguments(argc,argv);
+  size_t memSize = args.memSize;
+  auto& in = args.filename;
 
   Core::Core<MMU::FixedMapping> core(memSize);
-  assert(in && "No filename is given");
-  Loader::loadELFImage(in, core);
+  Loader::loadELFImage(in.c_str(), core);
 
   Types::uword_t w;
   Types::Insn i;

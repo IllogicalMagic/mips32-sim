@@ -37,9 +37,11 @@ namespace Decoder {
   constexpr bit_range func_range = {0, 6};
   //shift operations with fixed amount of bits (provided as immediate)
   constexpr std::array<Commands::spec_command_name, 4> shift_icmds = {Commands::Sll, Commands::Sra, Commands::Srl, Commands::Rotr};
-  constexpr std::array<Commands::command_name, 6> sign_ext_ops = {
+  constexpr std::array<Commands::command_name, 10> sign_ext_ops = {
     Commands::Addi, Commands::Addiu,
-    Commands::Lw, Commands::Lh, Commands::Lb, Commands::Slti
+    Commands::Slti, Commands::Sltiu,
+    Commands::Lw, Commands::Lh, Commands::Lb,
+    Commands::Sw, Commands::Sh, Commands::Sb,
   };
 
   Insn decode_word(word_t word);

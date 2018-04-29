@@ -66,7 +66,7 @@ void Core<MMU::FixedMapping>::raiseException(ExcType ex, ExcCode code) {
   if (ex == ExcType::Syscall) {
     Syscalls SyscallNum = static_cast<Syscalls>(registerMap[Synonyms::V0].sVal);
     if (SyscallNum == Syscalls::Exit) {
-      printf("Program exited with exit code %d.\n", registerMap[Synonyms::A0].sVal);
+      printf("Program exited with exit code %d.\n", registerMap[Synonyms::A0].uVal & 0xff);
     }
     else {
       printf("Unknown syscall number %d.\n", static_cast<int>(SyscallNum));

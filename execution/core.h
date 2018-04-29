@@ -33,6 +33,7 @@ enum Regs {
   A1 = 5,
   A2 = 6,
   A3 = 7,
+  GP = 28,
   SP = 29,
   FP = 30,
   RA = 31,
@@ -71,6 +72,7 @@ public:
 
   // Set new value of program counter.
   void setPC(uword_t pc) { PC = pc; }
+  void setGP(uword_t gp) { registerMap[Synonyms::GP].uVal = gp; }
 
 private:
   // Insn handlers section

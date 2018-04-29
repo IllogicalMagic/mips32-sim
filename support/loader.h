@@ -62,6 +62,22 @@ void loadELFImage(const char* fIn, Core &core) {
   }
 
   core.setPC(loader.get_entry());
+
+  // Initialize $gp (global pointer) register from .reginfo section.
+  auto RegInfoIt = std::find_if(loader.sections.begin(), loader.sections.end(),
+                                [] (const ELFIO::section *s) {
+                                  return s->get_name() == ".reginfo";
+                                });
+  assert(RegInfoIt != loader.sections.end() && "No .reginfo section");
+
+  struct Elf32_RegInfo {
+    ELFIO::Elf32_Word ri_gprmask;
+    ELFIO::Elf32_Word ri_cprmask[4];
+    ELFIO::Elf32_Sword ri_gp_value;
+  };
+  const Elf32_RegInfo *RegInfo = reinterpret_cast<const Elf32_RegInfo*>((*RegInfoIt)->get_data());
+  assert(RegInfo->ri_gp_value && "GP should be initialized");
+  core.setGP(RegInfo->ri_gp_value);
 }
 
 }

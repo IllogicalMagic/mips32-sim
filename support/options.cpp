@@ -21,7 +21,7 @@ struct ParseWrapper {
 
             desc.add_options()
                 ("help", "produce help message")
-                ("memSize", po::value<int>()->default_value(mem_default), "set memory size")
+                ("memSize", po::value<size_t>()->default_value(mem_default), "set memory size")
                 ("file", po::value<std::string>(), "file to execute")
             ;
             po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), args);
@@ -41,7 +41,7 @@ AppmodeArguments::AppmodeArguments(int argc, char ** argv) {
     //PRINT_ERROR("File should be specified after --raw option\n");
     assert(fields.count("file") && "ELF filename is essential for the launch");
     filename = fields["file"].as< std::string >();
-    memSize = fields["memSize"].as<int>();
+    memSize = fields["memSize"].as<size_t>();
 }
 
 FullSimArguments::FullSimArguments(int argc, char ** argv) {
@@ -51,5 +51,5 @@ FullSimArguments::FullSimArguments(int argc, char ** argv) {
     //PRINT_ERROR("File should be specified after --raw option\n");
     assert(fields.count("file") && "Binary filename is essential for the launch");
     filename = fields["file"].as< std::string >();
-    memSize = fields["memSize"].as<int>();
+    memSize = fields["memSize"].as<size_t>();
 }

@@ -7,7 +7,7 @@ struct AppmodeArguments {
     size_t memSize;
 
     // For now it is fixed.
-    constexpr static size_t DEFAULT_MEMSIZE = ((size_t) 1024) * 1024 * 100;
+    constexpr static size_t DEFAULT_MEMSIZE = ((size_t) 1024) * 1024 * 1024 * 2; // 2 GB for user-mode
 
     AppmodeArguments(int argc, char ** argv);
 };

@@ -46,7 +46,7 @@ all: generate build
 generate:
 	$(foreach DIR, $(GENDIRS), $(GEN))
 
-build:
+build: generate
 	$(foreach DIR, $(SUBDIRS), $(PAT))
 
 clean:

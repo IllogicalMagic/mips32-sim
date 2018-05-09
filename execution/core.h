@@ -11,6 +11,7 @@
 #include "common/types.h"
 #include "common/dec_types.h"
 #include "common/debug.h"
+#include "support/logging.h"
 #include "memory.h"
 #include "decoder/decoder.h"
 #include "sysreg_handler.h"
@@ -54,7 +55,8 @@ class Core : private Sysregs::SysregHandler {
 
   std::array<GPReg, GPRCount> registerMap;
   CalcReg HI = {0}, LO = {0};
-
+  Logger::SimLogger<MMUType> _logger;
+  
   // Memory management
   using MMUTy = MMUType;
   size_t memSize;
@@ -110,50 +112,51 @@ private:
 #include "sysreg_init.inc"
 
 public:
-  Core(size_t memSizeArg):
+  Core(size_t memSizeArg, Logger::LogLevel lvl = Logger::DEBUG):
     Sysregs::SysregHandler(registerMap),
-    registerMap({0}), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
-#ifdef TLB_DEBUG
-    // magic value to check two TLB records
-    memSize = 16408;
-#endif
+    registerMap({0}), _logger(*this, lvl), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
 
-    // Memory init
-    memory.reset(new ubyte_t[memSize]);
+  #ifdef TLB_DEBUG
+      // magic value to check two TLB records
+      memSize = 16408;
+  #endif
 
-    // Init stack and frame pointers.
-    // For now we have no way except this to do so.
-    registerMap[Synonyms::SP].uVal = memSize;
-    registerMap[Synonyms::FP].uVal = memSize;
+      // Memory init
+      memory.reset(new ubyte_t[memSize]);
 
-    initSysregs();
-    initHandlers();
+      // Init stack and frame pointers.
+      // For now we have no way except this to do so.
+      registerMap[Synonyms::SP].uVal = memSize;
+      registerMap[Synonyms::FP].uVal = memSize;
 
-#ifdef TLB_DEBUG
-    sysregs.EntryHi.VPN2 = 1;
-    sysregs.EntryLo0.PFN = 2;
-    sysregs.EntryLo0.D = 1;
-    sysregs.EntryLo0.V = 1;
-    sysregs.EntryLo0.G = 1;
-    sysregs.EntryLo1.PFN = 2;
-    sysregs.EntryLo1.D = 1;
-    sysregs.EntryLo1.V = 1;
-    sysregs.EntryLo1.G = 1;
-    sysregs.PageMask.Mask = 0;
-    mmu->write(3);
+      initSysregs();
+      initHandlers();
 
-    sysregs.EntryHi.VPN2 = 2;
-    sysregs.EntryLo0.PFN = 1;
-    sysregs.EntryLo0.D = 1;
-    sysregs.EntryLo0.V = 1;
-    sysregs.EntryLo0.G = 1;
-    sysregs.EntryLo1.PFN = 1;
-    sysregs.EntryLo1.D = 1;
-    sysregs.EntryLo1.V = 1;
-    sysregs.EntryLo1.G = 1;
-    sysregs.PageMask.Mask = 0;
-    mmu->write(15);
-#endif
+  #ifdef TLB_DEBUG
+      sysregs.EntryHi.VPN2 = 1;
+      sysregs.EntryLo0.PFN = 2;
+      sysregs.EntryLo0.D = 1;
+      sysregs.EntryLo0.V = 1;
+      sysregs.EntryLo0.G = 1;
+      sysregs.EntryLo1.PFN = 2;
+      sysregs.EntryLo1.D = 1;
+      sysregs.EntryLo1.V = 1;
+      sysregs.EntryLo1.G = 1;
+      sysregs.PageMask.Mask = 0;
+      mmu->write(3);
+
+      sysregs.EntryHi.VPN2 = 2;
+      sysregs.EntryLo0.PFN = 1;
+      sysregs.EntryLo0.D = 1;
+      sysregs.EntryLo0.V = 1;
+      sysregs.EntryLo0.G = 1;
+      sysregs.EntryLo1.PFN = 1;
+      sysregs.EntryLo1.D = 1;
+      sysregs.EntryLo1.V = 1;
+      sysregs.EntryLo1.G = 1;
+      sysregs.PageMask.Mask = 0;
+      mmu->write(15);
+  #endif
   }
 
   size_t getMemSize() {
@@ -200,9 +203,21 @@ public:
     return run;
   }
 
-  uword_t getReg(size_t index) {
+  uword_t getPC() {
+      return PC;
+  }
+
+  CalcReg getReg(size_t index) {
     assert(index < GPRCount);
-    return registerMap[index].uVal;
+    return registerMap[index];
+  }
+
+  CalcReg getReg(RegType type, size_t index = 0) {
+      if (type == RegType::HI)
+        return HI;
+      if (type == RegType::LO)
+        return LO;
+      return getReg(index);
   }
 }; // class Core
 

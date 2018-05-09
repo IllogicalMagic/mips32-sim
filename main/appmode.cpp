@@ -28,8 +28,8 @@ int main(int argc, char **argv) {
     core.executeInsn(i);
   }
 
-  auto v0 = core.getReg(2);
-  auto v1 = core.getReg(3);
+  auto v0 = core.getReg(2).uVal;
+  auto v1 = core.getReg(3).uVal;
   printf("$v0 == %u or %d\n$v1 == %u or %d\n", v0, (int) v0, v1, (int) v1);
   return 0;
 }

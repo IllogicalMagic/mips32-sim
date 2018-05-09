@@ -15,6 +15,9 @@ debug_line = '  PRINT_DEBUG("{0}: \\t");\n'
 handler_stub = ' {{\n  PRINT_DEBUG("Executed {0}\\n");\n  assert(0 && "Unimplemented insn");\n}}\n'
 handler_decl = 'void processInsn{0}(const Types::Insn &i)'
 
+logger_cmds = {'insn': '  _logger.executingInsn("{}");\n', 'wreg': '  _logger.writeReg({});\n',
+               'wmem': '  _logger.writeMem({}, {});\n'} #rt and vAddr
+
 # translation table
 repl_table = [ ('GPR', 'registerMap'),
                ('rs' , 'i.rs'),
@@ -35,6 +38,7 @@ defuse_table = [ 'GPR\[r.\]',
                  'LO',
                  'imm',
                  '(?<=\().*memory.*(?=\))']
+               #memory+pAddr  
 
 def process_line(line):
     global insns
@@ -85,7 +89,8 @@ def read_handler(h, insn):
         print 'Expected }'
         raise BaseException
     handler_body.append(line)
-    handler_body.append(debug_line.format(insn))
+    handler_body.append(logger_cmds['insn'].format(insn))
+    #handler_body.append(debug_line.format(insn))
 
     line = extract_line(h)
     while line != '}\n':
@@ -105,81 +110,64 @@ def filter_stmts(handler):
     # get only assignments
     return filter(lambda x : ' = ' in x, stmts)
 
-# return pair of (type, index) for value
-def extract_index(val):
-    if 'GPR' in val:
-        reg = re.search('\[(.*)\]', val)
-        if not reg:
-            print "Bad register"
-            raise Exception
-        return ('${0}!=$%zu'.format(reg.group(1)), reg.group(1))
-    if 'imm' in val:
-        return ('imm!', None)
-    if 'HI' in val:
-        return ('HI', None)
-    if 'LO' in val:
-        return ('LO', None)
-    if 'memory' in val:
-        addr = re.search('(?<=\+).*', val)
-        if addr == None:
-            print 'Memory access without any addressing! {0}'.format(val)
-            raise Exception
-        addr = addr.group()
-        return ('[0x%08x]=', addr)
-
-# get value expression for reference
-# now only memory handled in special way
-def convert_ref_to_value(ref):
-    if not 'memory' in ref:
-        return ref
-
-    return '*reinterpret_cast<uw_t *>({0})'.format(ref)
-
-# return PRINT_DEBUG with format string and arguments
-def get_debug_string(prefix, fmts, args):
-    if args:
-        res = '  PRINT_DEBUG("{0}{1}",'.format(prefix, ', '.join(fmts))
-        res = res + ', '.join(args)
-        res = res + ');\n'
-    else:
-        res = ''
-    return res
 
 # generate debug string for tracing defs and uses
-def gen_full_info(defs, uses, before):
-    args = []
-    fmts = []
-    val_fmt = '(0x%08x,%u)'
-    for d in defs:
-        if before and 'memory' in d:
-            continue
-        fmt, arg = extract_index(d)
-        fmts.append(fmt + val_fmt)
-        if arg:
-            args.append(arg)
-        arg = convert_ref_to_value(d)
-        args.extend((arg, arg))
-    if before:
-        for u in uses:
-            if 'memory' in u:
-                continue
-            fmt, arg = extract_index(u)
-            fmts.append(fmt + val_fmt)
-            if arg:
-                args.append(arg)
-            arg = convert_ref_to_value(u)
-            args.extend((arg, arg))
-
-    prefix = ''
-    if not before:
-        prefix = 'WB: '
-    return get_debug_string(prefix, fmts, args)
+#def gen_full_info(defs, uses, before):
+#    args = []
+#    fmts = []
+#    val_fmt = '(0x%08x,%u)'
+#    for d in defs:
+#        if before and 'memory' in d:
+#            continue
+#        fmt, arg = extract_index(d)
+#        fmts.append(fmt + val_fmt)
+#        if arg:
+ #           args.append(arg)
+  #      arg = convert_ref_to_value(d)
+   #     args.extend((arg, arg))
+    #if before:
+     #   for u in uses:
+      #      if 'memory' in u:
+       #         continue
+        #    fmt, arg = extract_index(u)
+         #   fmts.append(fmt + val_fmt)
+          #  if arg:
+           #     args.append(arg)
+            #arg = convert_ref_to_value(u)
+            #args.extend((arg, arg))
+#
+ #   prefix = ''
+  #  if not before:
+   #     prefix = 'WB: '
+    #return get_debug_string(prefix, fmts, args)
 
 # append .u for values that should be somehow accessed
 def get_ref_unsigned(ref):
     if 'GPR' in ref or 'HI' in ref or 'LO' in ref:
         return ref + '.u'
     return ref
+
+def get_mem_value(defin):
+    #memory + pAddr
+    return '*reinterpret_cast<uw_t *>({0})'.format(defin)
+
+def gen_def_log(defs, insn):
+	res = []
+	for defin in defs:
+		if not 'memory' in defin:
+			assert not 'imm' in defin, "IMM cannot be defined in insn"
+			if 'GPR' in defin:
+				arg = defin[4:6] #rs,rt or rd
+			else: #HI or LO
+				arg = 'RegType::' + defin[:2]
+			res.append(logger_cmds['wreg'].format(arg))
+		else:
+		    vAddrArg, valueArg = 'vAddr', get_mem_value(defin)
+		    res.append(logger_cmds['wmem'].format(vAddrArg, valueArg))		    
+	return res
+	
+def gen_use_log(uses, insn):
+	return []	
 
 def gen_printer(insn):
     handler = ''.join(insns[insn][2:-1])
@@ -195,22 +183,23 @@ def gen_printer(insn):
             matched_rhs = re.findall(var, rhs)
             uses = uses.union(matched_rhs)
 
-    defs = map(get_ref_unsigned, defs)
+    defs = map(get_ref_unsigned, defs) #GPR
     uses = map(get_ref_unsigned, uses)
 
-    before = gen_full_info(defs, uses, True)
-    after = gen_full_info(defs, uses, False)
-    if after != '':
-        before = before + '  PRINT_DEBUG("; ");\n'
-    after = after + '  PRINT_DEBUG("\\n");\n'
+    #TODO write logging above def-use sets
+    def_log = gen_def_log(defs, insn)
+    use_log = gen_use_log(uses, insn)
+    
     res = insns[insn]
     # insert after "Executed ..."
-    res.insert(2, before)
+    if use_log:
+        res = res[:2] + use_log + res[2:]
     # insert before last }
-    if 'DelaySlot' in res[-2]:
-        res.insert(-2, after)
-    else:
-        res.insert(-1, after)
+    if def_log:
+        if 'DelaySlot' in res[-2]: #substring match
+            res = res[:-2] + def_log + res[-2:]
+        else:
+            res = res[:-1] + def_log + res[-1:]
     insns[insn] = res
 
 def gen_exception_tracer(insn):
@@ -256,6 +245,9 @@ def generate_cxx():
         out.write(handler_decl.format(insn.capitalize()))
         out.write(' ')
         for line in body:
+            if type(line) != str:
+                print ("Line must be a string, but:", line)
+                exit(1)
             out.write(line)
         out.write('\n')
     out.write('\n')

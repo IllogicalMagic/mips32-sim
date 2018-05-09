@@ -8,6 +8,10 @@ namespace Types {
     word_t sVal;
   };
 
+  enum class RegType {
+      GPR, HI, LO
+  };
+
   using GPReg = CalcReg;
   constexpr size_t GPRCount = 32;
 }

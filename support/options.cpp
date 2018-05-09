@@ -3,7 +3,7 @@
 #include <iostream>
 #include <assert.h>
 #include <boost/program_options.hpp>
-#include "support/options.h"
+#include "options.h"
 
 //#include "support/error.h"
 

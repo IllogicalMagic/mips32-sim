@@ -18,6 +18,7 @@ void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
     if (isInDelaySlot) {
       sysregs.EPC.EPC = PC - 4;
       sysregs.Cause.BD = 1;
+      isInDelaySlot = false;
     }
     else {
       sysregs.EPC.EPC = PC;

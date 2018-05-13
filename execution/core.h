@@ -180,7 +180,9 @@ public: //? Why not instantiate logger separately
   void executeDelaySlotInsn(bool condition) {
     isInDelaySlot = true;
     uword_t w;
-    fetch(w);
+    if (!fetch(w))
+      return;
+
     Insn i = Decoder::decode_word(w);
     executeInsn(i);
     if (condition)

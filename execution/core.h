@@ -55,8 +55,8 @@ class Core : private Sysregs::SysregHandler {
 
   std::array<GPReg, GPRCount> registerMap;
   CalcReg HI = {0}, LO = {0};
-  Logger::SimLogger<MMUType> _logger;
-  
+  std::unique_ptr<Logger::SimLogger<MMUType>> logger_;
+
   // Memory management
   using MMUTy = MMUType;
   size_t memSize;
@@ -111,10 +111,10 @@ private:
   // Init helper functions
 #include "sysreg_init.inc"
 
-public:
-  Core(size_t memSizeArg, Logger::LogLevel lvl = Logger::DEBUG):
+public: //? Why not instantiate logger separately
+  Core(size_t memSizeArg):
     Sysregs::SysregHandler(registerMap),
-    registerMap({0}), _logger(*this, lvl), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
+    registerMap({0}), logger_(new Logger::SimLogger<MMUType>()), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
 
   #ifdef TLB_DEBUG
       // magic value to check two TLB records
@@ -157,6 +157,13 @@ public:
       sysregs.PageMask.Mask = 0;
       mmu->write(15);
   #endif
+  }
+
+  void connectLogger(std::unique_ptr<Logger::SimLogger<MMUType>> && toConnect) {
+      if (toConnect->is_empty)
+        return;
+      logger_ = std::move(toConnect);
+      logger_->setSim(*this);
   }
 
   size_t getMemSize() {

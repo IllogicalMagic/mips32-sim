@@ -41,7 +41,8 @@ endef
 
 
 all: generate build
-	cp main/simulator main/appmode asm/asm.py .
+	cp main/appmode asm/asm.py .
+	#cp main/simulator .
 
 generate:
 	$(foreach DIR, $(GENDIRS), $(GEN))

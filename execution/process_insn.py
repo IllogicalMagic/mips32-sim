@@ -15,8 +15,8 @@ debug_line = '  PRINT_DEBUG("{0}: \\t");\n'
 handler_stub = ' {{\n  PRINT_DEBUG("Executed {0}\\n");\n  assert(0 && "Unimplemented insn");\n}}\n'
 handler_decl = 'void processInsn{0}(const Types::Insn &i)'
 
-logger_cmds = {'insn': '  _logger.executingInsn("{}");\n', 'wreg': '  _logger.writeReg({});\n',
-               'wmem': '  _logger.writeMem({}, {});\n'} #rt and vAddr
+logger_cmds = {'insn': '  logger_->executingInsn("{}");\n', 'wreg': '  logger_->writeReg({});\n',
+               'wmem': '  logger_->writeMem({}, {});\n'} #rt and vAddr
 
 # translation table
 repl_table = [ ('GPR', 'registerMap'),

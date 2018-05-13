@@ -18,6 +18,8 @@ int main(int argc, char **argv) {
   auto& in = args.filename;
 
   Core::Core<MMU::FixedMapping> core(memSize);
+  core.connectLogger(std::move(args.logger));
+
   Loader::loadELFImage(in.c_str(), core);
 
   Types::uword_t w;

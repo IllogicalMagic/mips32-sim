@@ -1,6 +1,6 @@
 GENERATED=
 
-OBJ=options.o loader.o
+OBJ=options.o loader.o logging.o
 
 all: $(OBJ)
 

@@ -1,10 +1,8 @@
 GENERATED=sysregs.h sysregs.cpp sysreg_decl.h sysreg_arr.h insn_handlers.inc sysreg_init.inc
 
-OBJ=../support/logging.o core.o tlb.o sysregs.o
+OBJ=core.o tlb.o sysregs.o
 
 all: $(OBJ)
-
-core.o: ../support/logging.o
 
 test: test.o $(OBJ)
 

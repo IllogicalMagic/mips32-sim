@@ -7,6 +7,8 @@
 #include <cassert>
 #include <cstring>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "common/types.h"
 #include "common/dec_types.h"
@@ -63,6 +65,53 @@ class Core : private Sysregs::SysregHandler {
   std::unique_ptr<ubyte_t []> memory;
   std::unique_ptr<MMUTy> mmu;
 
+  // Region execution
+  using AddrMapType = std::unordered_map<MMU::VirtAddr, size_t>;
+  struct BasicBlock {
+    std::vector<Insn> InsnList;
+    AddrMapType::iterator BBPos;
+    bool Valid = false;
+
+    auto begin() const { return InsnList.begin(); }
+    auto end() const { return InsnList.end(); }
+  };
+
+  class TranslationCache {
+    static constexpr unsigned TCSize = 128;
+    std::array<BasicBlock, TCSize> Storage;
+    size_t CurIdx = 0;
+
+  public:
+    size_t getCurIdx() const { return CurIdx; }
+
+    // Check if BB with index Idx exists.
+    bool hasBB(size_t Idx) const {
+      assert(CurIdx < TCSize && "Bad Idx");
+      return Storage[Idx].Valid;
+    }
+
+    // Return BB. User should call hasBB to check whether BB exists.
+    const BasicBlock &getBB(size_t Idx) const {
+      assert(CurIdx < TCSize && "Bad Idx");
+      return Storage[Idx];
+    }
+
+    // Inserts new BB.
+    // Replacement policy -- replace the oldest one.
+    // Returns index of inserted BB.
+    void insertBB(const BasicBlock &BB) {
+      assert(CurIdx < TCSize && "Bad CurIdx");
+      Storage[CurIdx] = BB;
+      if (++CurIdx >= TCSize)
+        CurIdx = 0;
+    }
+  };
+
+  TranslationCache TC;
+  AddrMapType AddrMap;
+  // Marker for basic block execution.
+  bool ExceptionOccured = false;
+
 public:
   // Memory initialization function.
   // Gets:
@@ -114,7 +163,8 @@ private:
 public: //? Why not instantiate logger separately
   Core(size_t memSizeArg):
     Sysregs::SysregHandler(registerMap),
-    registerMap({0}), logger_(new Logger::SimLogger<MMUType>()), memSize(memSizeArg), mmu(new MMUTy(sysregs)) {
+    registerMap({0}), logger_(new Logger::SimLogger<MMUType>()), memSize(memSizeArg), mmu(new MMUTy(sysregs)),
+    TC(), AddrMap() {  
 
   #ifdef TLB_DEBUG
       // magic value to check two TLB records
@@ -208,6 +258,18 @@ public: //? Why not instantiate logger separately
     return true;
   }
 
+private:
+  std::tuple<bool, uword_t> fetchNoExc(MMU::VirtAddr vAddr) {
+    MMU::PhysAddr pAddr;
+    auto excT = mmu->template translate<MMU::AccType::Read>(vAddr, pAddr);
+    if (excT != ExcType::None) {
+      return {false, 0};
+    }
+    uword_t Word = *(reinterpret_cast<uword_t *>(memory.get() + pAddr));
+    return {true, Word};
+  }
+
+public:
   bool isRunning() {
     return run;
   }
@@ -227,6 +289,97 @@ public: //? Why not instantiate logger separately
       if (type == RegType::LO)
         return LO;
       return getReg(index);
+  }
+
+  void process() {
+    auto BBPos = AddrMap.find(PC);
+
+    // Found BB in translation cache, execute it.
+    if (BBPos != AddrMap.end()) {
+      PRINT_DEBUG("Found BB in AddrMap\n");
+      executeBB(BBPos->second);
+      return;
+    }
+
+    // Try to form new basic block.
+    auto [HasBB, BBIndex] = formBB();
+    if (HasBB) {
+      PRINT_DEBUG("Formed new BB\n");
+      executeBB(BBIndex);
+      return;
+    }
+
+    // If basic block is not formed, execute single instruction.
+    PRINT_DEBUG("Executing single instruction\n");
+    executeSingleInsn();
+  }
+
+  void executeSingleInsn() {
+    uword_t Word;
+    bool Success = fetch(Word);
+    // Exception occured, fall back.
+    if (!Success)
+      return;
+    Insn I = Decoder::decode_word(Word);
+    executeInsn(I);
+  }
+
+private:
+  std::tuple<bool, size_t> formBB() {
+    auto [Success, BB] = decodeBB();
+    if (!Success)
+      return {false, 0};
+
+    size_t Idx = TC.getCurIdx();
+    if (TC.hasBB(Idx)) {
+      const BasicBlock &OldBB = TC.getBB(Idx);
+      AddrMap.erase(OldBB.BBPos);
+    }
+    auto InsP = AddrMap.insert(std::make_pair(static_cast<MMU::VirtAddr>(PC), Idx));
+    assert(InsP.second && "Impossible");
+
+    BB.BBPos = InsP.first;
+    TC.insertBB(BB);
+    return {true, Idx};
+  }
+
+  std::tuple<bool, BasicBlock> decodeBB() {
+    auto [Success, Word] = fetchNoExc(PC);
+    if (!Success)
+      return {false, BasicBlock()};
+
+    Insn I = Decoder::decode_word(Word);
+    if (I.IsBranch)
+      return {false, BasicBlock()};
+
+    BasicBlock BB;
+    BB.Valid = true;
+    BB.InsnList.push_back(I);
+
+    for (MMU::VirtAddr vAddr = PC + 4; ; vAddr += 4) {
+      auto [Success, Word] = fetchNoExc(vAddr);
+      if (!Success)
+        break;
+
+      I = Decoder::decode_word(Word);
+      BB.InsnList.push_back(I);
+      if (I.IsBranch)
+        break;
+    }
+
+    return {true, BB};
+  }
+
+  void executeBB(size_t BBIdx) {
+    const BasicBlock &BB = TC.getBB(BBIdx);
+
+    for (const auto &I : BB) {
+      executeInsn(I);
+      if (ExceptionOccured)
+        break;
+    }
+
+    ExceptionOccured = false;
   }
 }; // class Core
 

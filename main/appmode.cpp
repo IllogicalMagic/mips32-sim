@@ -22,12 +22,9 @@ int main(int argc, char **argv) {
 
   Loader::loadELFImage(in.c_str(), core);
 
-  Types::uword_t w;
-  Types::Insn i;
   while (core.isRunning()) {
-    core.fetch(w);
-    i = Decoder::decode_word(w);
-    core.executeInsn(i);
+    // TODO: option for core.executeSingleInsn();
+    core.process();
   }
 
   auto v0 = core.getReg(2).uVal;

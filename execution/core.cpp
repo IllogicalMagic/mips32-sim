@@ -12,6 +12,9 @@ namespace Core {
 // Algorithm from MIPS32 4K Processor Core Family Software User's Manual
 template<>
 void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
+  // Marker for basic block execution.
+  ExceptionOccured = true;
+
   // General exception handling
   uword_t vectorOffset;
   if (sysregs.Status.EXL == 0) {
@@ -64,6 +67,9 @@ void Core<MMU::TLB>::raiseException(ExcType ex, ExcCode code) {
 
 template<>
 void Core<MMU::FixedMapping>::raiseException(ExcType ex, ExcCode code) {
+  // Marker for basic block execution.
+  ExceptionOccured = true;
+
   if (ex == ExcType::Syscall) {
     Syscalls SyscallNum = static_cast<Syscalls>(registerMap[Synonyms::V0].sVal);
     if (SyscallNum == Syscalls::Exit) {

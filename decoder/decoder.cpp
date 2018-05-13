@@ -96,6 +96,28 @@ Insn decode_word(word_t word) {
     parsed.rs = get_bits(rs_range, word);
     parsed.rt = get_bits(rt_range, word);  
   }
+
+  // Set IsBranch attribute.
+  switch (parsed.op) {
+  case OpTypes::B:
+  case OpTypes::Bal:
+  case OpTypes::Beq:
+  case OpTypes::Bgez:
+  case OpTypes::Bgezal:
+  case OpTypes::Bgtz:
+  case OpTypes::Blez:
+  case OpTypes::Bltz:
+  case OpTypes::Bltzal:
+  case OpTypes::Bne:
+  case OpTypes::J:
+  case OpTypes::Jal:
+  case OpTypes::Jr:
+    parsed.IsBranch = true;
+    break;
+  default:
+    parsed.IsBranch = false;
+    break;
+  }
   return parsed;
 }
 

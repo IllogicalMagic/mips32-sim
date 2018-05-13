@@ -25,6 +25,8 @@ namespace Types {
     regn_t rt;
     regn_t rd;
     imm_t imm;
+
+    bool IsBranch;
   };
 
 } // namespace Types

@@ -93,7 +93,7 @@ public:
         if (!*this)
             return;
         if (level_ & 0b1) {
-            out_ << "\n" << HexValue(sim_->getPC()) << ": " << mnemonic << "\n";
+            out_ << "\n" << HexValue(sim_->getPC()) << ": " << mnemonic << std::endl;
         }
     }
 
@@ -105,7 +105,7 @@ public:
         auto val = sim_->getReg(regNum).uVal;
         logRegVal(val);
         if (level_ != FLOW)
-            out_ << "\n";
+            out_ << std::endl;
     }
 
     void writeReg(const RegType type) {
@@ -121,7 +121,7 @@ public:
 
         auto val = sim_->getReg(type).uVal;
         logRegVal(val);
-        out_ << "\n";
+        out_ << std::endl;
     }
 
 //TODO choose if print memVAddr or memPAddr depending on appmode or simulator

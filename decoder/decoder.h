@@ -18,7 +18,7 @@ namespace Decoder {
 	  //enum cop0_command_name
 
 	  enum cmd_type{
-	    CMD = -1, 
+	    CMD = -1,
 	    SPEC_CMD = 0, SPEC2_CMD = 0b011100, SPEC3_CMD = 0b011111,
 	    COP_CMD = 0b010000
 	  };
@@ -32,7 +32,7 @@ namespace Decoder {
 
   constexpr bit_range op_range = {26, WORD_LEN};
   constexpr bit_range address_range = {0, 26};
-  constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};   
+  constexpr bit_range rs_range = {21, 26}, rt_range = {16, 21}, rd_range = {11, 16};
   constexpr bit_range shift_range = {6, 11};
   constexpr bit_range func_range = {0, 6};
   //shift operations with fixed amount of bits (provided as immediate)
@@ -44,8 +44,8 @@ namespace Decoder {
     Commands::Sw, Commands::Sh, Commands::Sb,
   };
 
-  Insn decode_word(word_t word);
-  uword_t get_bits(bit_range range, word_t from);
+  Insn decode_word(uword_t word);
+  uword_t get_bits(bit_range range, uword_t from);
 
   #include "map_match.h"	//constexpr std::map<DecEnType, Types::OpTypes::OpType> cmd_matcher, spec_cmd_matcher, cop0_cmd_matcher;
   template <typename DecEnType>

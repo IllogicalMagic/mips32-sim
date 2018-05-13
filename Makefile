@@ -1,7 +1,7 @@
 CXX?=g++
 CXXSTD?=c++17
 CXXWARN?=-Wall -Werror --pedantic-errors -Wno-unused-variable -Wno-unused-result
-LDLIBS?=-lboost_program_options
+LDLIBS?=-lboost_program_options -lubsan
 
 ifeq ($(MODE), release)
 FLTO?=-flto

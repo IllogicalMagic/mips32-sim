@@ -15,11 +15,11 @@ nop will be translated to sll
 
 namespace Simulator { namespace Decoder {
 
-inline unsigned char get_bit(int n, word_t from) {
+inline unsigned char get_bit(int n, uword_t from) {
   return (from >> n) & 1;
 }
 
-inline uword_t get_bits(bit_range range, word_t from) {
+inline uword_t get_bits(bit_range range, uword_t from) {
   assert(range.second > range.first);
   int len = range.second - range.first;
   word_t mask = ((1 << len) - 1);
@@ -27,10 +27,10 @@ inline uword_t get_bits(bit_range range, word_t from) {
 }
 
 #include "matchers.hpp"
-    
-Insn decode_word(word_t word) {
+
+Insn decode_word(uword_t word) {
   using namespace Commands;
-  using namespace Types;  
+  using namespace Types;
 
   Insn parsed;
   uword_t opcode = get_bits(op_range, word);
@@ -49,7 +49,7 @@ Insn decode_word(word_t word) {
     parsed.op = match_op(static_cast<spec_command_name>(opcode));
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
-    parsed.rt = get_bits(rt_range, word);                
+    parsed.rt = get_bits(rt_range, word);
     if (std::find(shift_icmds.begin(), shift_icmds.end(), opcode) != shift_icmds.end())
       parsed.imm = static_cast<word_t>(get_bits(shift_range, word));
   }
@@ -57,14 +57,14 @@ Insn decode_word(word_t word) {
     opcode = get_bits(func_range, word);
     parsed.rd = get_bits(rd_range, word);
     parsed.rs = get_bits(rs_range, word);
-    parsed.rt = get_bits(rt_range, word); 
-    parsed.op = match_op(static_cast<spec2_command_name>(opcode)); 
+    parsed.rt = get_bits(rt_range, word);
+    parsed.op = match_op(static_cast<spec2_command_name>(opcode));
   }
   else if (opcode == SPEC3_CMD) {
     opcode = get_bits(shift_range, word);
     parsed.rd = get_bits(rd_range, word);
-    parsed.rt = get_bits(rt_range, word); 
-    parsed.op = match_op(static_cast<spec3_command_name>(opcode)); 
+    parsed.rt = get_bits(rt_range, word);
+    parsed.op = match_op(static_cast<spec3_command_name>(opcode));
   }
   else if (opcode == COP_CMD) {//COP0
     opcode = get_bits(func_range, word);
@@ -78,7 +78,7 @@ Insn decode_word(word_t word) {
   else {
     parsed.op = match_op(static_cast<command_name>(opcode));
     auto ops_arr_end = sign_ext_ops.end();
-	
+
     if (std::find (sign_ext_ops.begin(), ops_arr_end, opcode) != ops_arr_end) {
       //imm is sign extended
       hword_t imm = 0xffff & word;
@@ -86,15 +86,15 @@ Insn decode_word(word_t word) {
 	}
 	else if (opcode == Beq || opcode == Bne) {
       hword_t offset = (0xffff & word);
-      parsed.imm = static_cast<word_t>(offset) << 2;
+      parsed.imm = static_cast<uword_t>(static_cast<word_t>(offset)) << 2;
 	}
     else {//imm is unsign extended
       uhword_t imm = 0xffff & word;
       parsed.imm = imm;
 	}
-    	
+
     parsed.rs = get_bits(rs_range, word);
-    parsed.rt = get_bits(rt_range, word);  
+    parsed.rt = get_bits(rt_range, word);
   }
 
   // Set IsBranch attribute.

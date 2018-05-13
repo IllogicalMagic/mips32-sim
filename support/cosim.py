@@ -30,7 +30,7 @@ if __name__ == '__main__':
         print("executing '{}'".format(line))
         subprocess.run(line, shell = True)
 
-        finished_proc = subprocess.run("diff 1.log 2.log", shell = True)
+        finished_proc = subprocess.run("diff -y --suppress-common-lines 1.log 2.log", shell = True)
         if finished_proc.returncode == 0:
             print("Equal results")
             os.remove('1.log')

@@ -30,3 +30,7 @@
 
 #Temporary files
 ~*
+
+#Comiled tests
+*.nat
+*.mips
